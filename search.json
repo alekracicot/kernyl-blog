@@ -1,0 +1,170 @@
+[
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "This blog explores dynamic pricing from first principles — starting with economic intuition and building up to working models in Python. The goal is to make these ideas accessible to data scientists and engineers who want to understand pricing beyond the textbook."
+  },
+  {
+    "objectID": "posts/what-is-dynamic-pricing/index.html",
+    "href": "posts/what-is-dynamic-pricing/index.html",
+    "title": "What Is Dynamic Pricing?",
+    "section": "",
+    "text": "Walk into a grocery store and everything has a fixed price. A can of beans costs $1.29 today, tomorrow, and next week. But open a ride-sharing app during rush hour and you’ll notice something different: the price changes. It responds to demand, supply, time, and context.\nThis is dynamic pricing — the practice of adjusting prices in real time (or near real time) based on market conditions."
+  },
+  {
+    "objectID": "posts/what-is-dynamic-pricing/index.html#the-price-tag-is-a-suggestion",
+    "href": "posts/what-is-dynamic-pricing/index.html#the-price-tag-is-a-suggestion",
+    "title": "What Is Dynamic Pricing?",
+    "section": "",
+    "text": "Walk into a grocery store and everything has a fixed price. A can of beans costs $1.29 today, tomorrow, and next week. But open a ride-sharing app during rush hour and you’ll notice something different: the price changes. It responds to demand, supply, time, and context.\nThis is dynamic pricing — the practice of adjusting prices in real time (or near real time) based on market conditions."
+  },
+  {
+    "objectID": "posts/what-is-dynamic-pricing/index.html#where-you-already-see-it",
+    "href": "posts/what-is-dynamic-pricing/index.html#where-you-already-see-it",
+    "title": "What Is Dynamic Pricing?",
+    "section": "Where you already see it",
+    "text": "Where you already see it\nDynamic pricing is not new. Airlines have done it for decades. A seat on a Tuesday morning flight in November costs a fraction of the same seat on a Friday evening in December. Hotels, electricity markets, and concert tickets all follow similar patterns.\nWhat is new is the scale and sophistication. With modern data infrastructure, even small e-commerce shops can implement pricing strategies that used to require teams of revenue analysts.\n\n“The right price is whatever someone is willing to pay” is a common oversimplification. In practice, dynamic pricing tries to find the price that maximizes a specific objective — revenue, profit, or market share."
+  },
+  {
+    "objectID": "posts/what-is-dynamic-pricing/index.html#the-core-idea",
+    "href": "posts/what-is-dynamic-pricing/index.html#the-core-idea",
+    "title": "What Is Dynamic Pricing?",
+    "section": "The core idea",
+    "text": "The core idea\nAt its simplest, dynamic pricing asks:\n\nWhat is the current demand?\nWhat is the available supply?\nWhat price maximizes our objective given the above?\n\nThe “objective” varies. An airline might optimize for total revenue across all seats. A ride-sharing platform might optimize for market balance — enough drivers on the road to keep wait times low."
+  },
+  {
+    "objectID": "posts/what-is-dynamic-pricing/index.html#what-this-series-will-cover",
+    "href": "posts/what-is-dynamic-pricing/index.html#what-this-series-will-cover",
+    "title": "What Is Dynamic Pricing?",
+    "section": "What this series will cover",
+    "text": "What this series will cover\nOver the next few posts, we’ll build up from basic economic intuition to working pricing models:\n\nDemand curves and price elasticity\nA simple pricing model in Python\nMulti-product pricing and cannibalization\nReal-time pricing with bandit algorithms\n\nNo PhD required — just some comfort with Python and basic statistics."
+  },
+  {
+    "objectID": "posts/what-is-dynamic-pricing/index.html#a-word-of-caution",
+    "href": "posts/what-is-dynamic-pricing/index.html#a-word-of-caution",
+    "title": "What Is Dynamic Pricing?",
+    "section": "A word of caution",
+    "text": "A word of caution\nDynamic pricing is powerful, but it comes with real ethical considerations. Surge pricing during emergencies, price discrimination that disproportionately affects certain groups, and opaque algorithms that customers can’t understand — these are all active areas of debate.\nWe’ll touch on these issues as they come up. Good pricing isn’t just about maximizing a number."
+  },
+  {
+    "objectID": "posts/demand-curves-elasticity/index.html",
+    "href": "posts/demand-curves-elasticity/index.html",
+    "title": "Demand Curves and Price Elasticity",
+    "section": "",
+    "text": "The most fundamental relationship in pricing is the demand curve: as price increases, the quantity demanded typically decreases. This isn’t a law of physics — there are exceptions — but it holds remarkably well across most markets.\nFormally, we can write a demand function:\n\\[\nQ(p) = a - b \\cdot p\n\\]\nwhere \\(Q\\) is quantity demanded, \\(p\\) is price, and \\(a\\), \\(b\\) are parameters that depend on the market. This linear form is a simplification, but it’s a useful starting point."
+  },
+  {
+    "objectID": "posts/demand-curves-elasticity/index.html#price-goes-up-demand-goes-down",
+    "href": "posts/demand-curves-elasticity/index.html#price-goes-up-demand-goes-down",
+    "title": "Demand Curves and Price Elasticity",
+    "section": "",
+    "text": "The most fundamental relationship in pricing is the demand curve: as price increases, the quantity demanded typically decreases. This isn’t a law of physics — there are exceptions — but it holds remarkably well across most markets.\nFormally, we can write a demand function:\n\\[\nQ(p) = a - b \\cdot p\n\\]\nwhere \\(Q\\) is quantity demanded, \\(p\\) is price, and \\(a\\), \\(b\\) are parameters that depend on the market. This linear form is a simplification, but it’s a useful starting point."
+  },
+  {
+    "objectID": "posts/demand-curves-elasticity/index.html#price-elasticity-of-demand",
+    "href": "posts/demand-curves-elasticity/index.html#price-elasticity-of-demand",
+    "title": "Demand Curves and Price Elasticity",
+    "section": "Price elasticity of demand",
+    "text": "Price elasticity of demand\nNot all products respond to price changes the same way. A 10% increase in the price of salt barely changes how much people buy. A 10% increase in the price of a luxury handbag might cut demand significantly.\nPrice elasticity of demand captures this:\n\\[\n\\epsilon = \\frac{\\% \\Delta Q}{\\% \\Delta p} = \\frac{dQ}{dp} \\cdot \\frac{p}{Q}\n\\]\n\n\\(|\\epsilon| &gt; 1\\): elastic — demand is sensitive to price (luxury goods, entertainment)\n\\(|\\epsilon| &lt; 1\\): inelastic — demand is insensitive to price (necessities, utilities)\n\\(|\\epsilon| = 1\\): unit elastic — a special case where revenue is maximized"
+  },
+  {
+    "objectID": "posts/demand-curves-elasticity/index.html#computing-elasticity-in-python",
+    "href": "posts/demand-curves-elasticity/index.html#computing-elasticity-in-python",
+    "title": "Demand Curves and Price Elasticity",
+    "section": "Computing elasticity in Python",
+    "text": "Computing elasticity in Python\nLet’s make this concrete with a quick example:\nimport numpy as np\nimport matplotlib.pyplot as plt\n\n# Linear demand: Q = 100 - 2p\na, b = 100, 2\nprices = np.linspace(1, 45, 200)\ndemand = a - b * prices\n\n# Elasticity at each price point\nelasticity = -b * prices / demand\n\nfig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))\n\nax1.plot(prices, demand, color=\"#4a6fa5\", linewidth=2)\nax1.set_xlabel(\"Price ($)\")\nax1.set_ylabel(\"Quantity demanded\")\nax1.set_title(\"Demand Curve\")\n\nax2.plot(prices, np.abs(elasticity), color=\"#c44e52\", linewidth=2)\nax2.axhline(y=1, color=\"#999\", linestyle=\"--\", alpha=0.7)\nax2.set_xlabel(\"Price ($)\")\nax2.set_ylabel(\"|Elasticity|\")\nax2.set_title(\"Price Elasticity\")\n\nplt.tight_layout()\nplt.show()"
+  },
+  {
+    "objectID": "posts/demand-curves-elasticity/index.html#why-elasticity-matters-for-pricing",
+    "href": "posts/demand-curves-elasticity/index.html#why-elasticity-matters-for-pricing",
+    "title": "Demand Curves and Price Elasticity",
+    "section": "Why elasticity matters for pricing",
+    "text": "Why elasticity matters for pricing\nIf demand is elastic, lowering your price increases revenue — you sell enough additional units to more than offset the lower price. If demand is inelastic, raising your price increases revenue — you lose few customers.\nThe revenue-maximizing price occurs at unit elasticity (\\(|\\epsilon| = 1\\)). For our linear demand curve:\n\\[\np^* = \\frac{a}{2b}\n\\]\nWith \\(a = 100\\) and \\(b = 2\\), the optimal price is $25.\n# Revenue = p * Q = p * (a - b*p)\nrevenue = prices * demand\noptimal_price = a / (2 * b)\noptimal_revenue = optimal_price * (a - b * optimal_price)\n\nplt.figure(figsize=(6, 4))\nplt.plot(prices, revenue, color=\"#4a6fa5\", linewidth=2)\nplt.axvline(x=optimal_price, color=\"#c44e52\", linestyle=\"--\", alpha=0.7)\nplt.annotate(\n    f\"p* = ${optimal_price:.0f}\\nR* = ${optimal_revenue:.0f}\",\n    xy=(optimal_price, optimal_revenue),\n    xytext=(optimal_price + 5, optimal_revenue - 100),\n    arrowprops=dict(arrowstyle=\"-&gt;\", color=\"#666\"),\n    fontsize=10,\n)\nplt.xlabel(\"Price ($)\")\nplt.ylabel(\"Revenue ($)\")\nplt.title(\"Revenue vs. Price\")\nplt.tight_layout()\nplt.show()"
+  },
+  {
+    "objectID": "posts/demand-curves-elasticity/index.html#beyond-linear-demand",
+    "href": "posts/demand-curves-elasticity/index.html#beyond-linear-demand",
+    "title": "Demand Curves and Price Elasticity",
+    "section": "Beyond linear demand",
+    "text": "Beyond linear demand\nReal-world demand curves are rarely linear. Common alternatives include:\n\nLog-linear: \\(\\ln Q = a - b \\ln p\\) (constant elasticity)\nExponential: \\(Q = a \\cdot e^{-bp}\\)\nLogistic: useful when demand saturates at high or low prices\n\nThe choice of functional form matters — it determines how your model extrapolates outside the observed data range."
+  },
+  {
+    "objectID": "posts/demand-curves-elasticity/index.html#next-up",
+    "href": "posts/demand-curves-elasticity/index.html#next-up",
+    "title": "Demand Curves and Price Elasticity",
+    "section": "Next up",
+    "text": "Next up\nIn the next post, we’ll use these ideas to build a complete pricing optimization model: estimate a demand curve from data, find the optimal price, and handle constraints like inventory limits."
+  },
+  {
+    "objectID": "posts/simple-pricing-model/index.html",
+    "href": "posts/simple-pricing-model/index.html",
+    "title": "Building a Simple Pricing Model in Python",
+    "section": "",
+    "text": "In the previous posts, we covered the intuition behind dynamic pricing and the math of demand curves. Now let’s put it together into a working model.\nThe workflow is straightforward:\n\nGenerate (or collect) historical price-demand data\nEstimate a demand curve\nOptimize price to maximize revenue (or profit)"
+  },
+  {
+    "objectID": "posts/simple-pricing-model/index.html#from-theory-to-code",
+    "href": "posts/simple-pricing-model/index.html#from-theory-to-code",
+    "title": "Building a Simple Pricing Model in Python",
+    "section": "",
+    "text": "In the previous posts, we covered the intuition behind dynamic pricing and the math of demand curves. Now let’s put it together into a working model.\nThe workflow is straightforward:\n\nGenerate (or collect) historical price-demand data\nEstimate a demand curve\nOptimize price to maximize revenue (or profit)"
+  },
+  {
+    "objectID": "posts/simple-pricing-model/index.html#step-1-simulating-data",
+    "href": "posts/simple-pricing-model/index.html#step-1-simulating-data",
+    "title": "Building a Simple Pricing Model in Python",
+    "section": "Step 1: Simulating data",
+    "text": "Step 1: Simulating data\nIn practice, you’d pull this from your transaction database. Here we’ll simulate realistic-looking data:\nimport numpy as np\nimport pandas as pd\nfrom scipy.optimize import minimize_scalar\n\nnp.random.seed(42)\n\n# True demand parameters (unknown in practice)\nTRUE_A = 200\nTRUE_B = 3.5\n\nn_obs = 500\nprices = np.random.uniform(10, 50, n_obs)\nnoise = np.random.normal(0, 8, n_obs)\nquantities = np.maximum(TRUE_A - TRUE_B * prices + noise, 0)\n\ndata = pd.DataFrame({\"price\": prices, \"quantity\": quantities})\ndata.head()\n\n\n\nprice\nquantity\n\n\n\n\n24.87\n117.96\n\n\n38.59\n60.43\n\n\n15.60\n152.11\n\n\n41.22\n51.87\n\n\n29.75\n96.54"
+  },
+  {
+    "objectID": "posts/simple-pricing-model/index.html#step-2-estimating-the-demand-curve",
+    "href": "posts/simple-pricing-model/index.html#step-2-estimating-the-demand-curve",
+    "title": "Building a Simple Pricing Model in Python",
+    "section": "Step 2: Estimating the demand curve",
+    "text": "Step 2: Estimating the demand curve\nA simple linear regression gives us \\(\\hat{a}\\) and \\(\\hat{b}\\):\nfrom sklearn.linear_model import LinearRegression\n\nmodel = LinearRegression()\nmodel.fit(data[[\"price\"]], data[\"quantity\"])\n\na_hat = model.intercept_\nb_hat = -model.coef_[0]  # negate because Q = a - b*p\n\nprint(f\"Estimated demand: Q = {a_hat:.1f} - {b_hat:.2f} * p\")\nprint(f\"True demand:      Q = {TRUE_A} - {TRUE_B} * p\")\nWith 500 observations and moderate noise, the estimates should be close to the true values."
+  },
+  {
+    "objectID": "posts/simple-pricing-model/index.html#step-3-optimizing-price",
+    "href": "posts/simple-pricing-model/index.html#step-3-optimizing-price",
+    "title": "Building a Simple Pricing Model in Python",
+    "section": "Step 3: Optimizing price",
+    "text": "Step 3: Optimizing price\nGiven our estimated demand curve, the revenue function is:\n\\[\nR(p) = p \\cdot \\hat{Q}(p) = p \\cdot (\\hat{a} - \\hat{b} \\cdot p)\n\\]\nWe can solve this analytically or numerically:\n# Analytical solution\np_star_analytical = a_hat / (2 * b_hat)\n\n# Numerical (useful for more complex demand curves)\nresult = minimize_scalar(\n    lambda p: -(p * (a_hat - b_hat * p)),  # negative because we minimize\n    bounds=(0, a_hat / b_hat),\n    method=\"bounded\",\n)\np_star_numerical = result.x\n\nprint(f\"Optimal price (analytical): ${p_star_analytical:.2f}\")\nprint(f\"Optimal price (numerical):  ${p_star_numerical:.2f}\")\nprint(f\"Expected revenue:           ${p_star_analytical * (a_hat - b_hat * p_star_analytical):.2f}\")"
+  },
+  {
+    "objectID": "posts/simple-pricing-model/index.html#adding-cost-structure",
+    "href": "posts/simple-pricing-model/index.html#adding-cost-structure",
+    "title": "Building a Simple Pricing Model in Python",
+    "section": "Adding cost structure",
+    "text": "Adding cost structure\nRevenue maximization ignores costs. If we have a per-unit cost \\(c\\), we want to maximize profit:\n\\[\n\\Pi(p) = (p - c) \\cdot (\\hat{a} - \\hat{b} \\cdot p)\n\\]\nunit_cost = 12  # $ per unit\n\np_star_profit = (a_hat + b_hat * unit_cost) / (2 * b_hat)\nexpected_profit = (p_star_profit - unit_cost) * (a_hat - b_hat * p_star_profit)\n\nprint(f\"Profit-maximizing price: ${p_star_profit:.2f}\")\nprint(f\"Expected profit:         ${expected_profit:.2f}\")\nThe profit-maximizing price is always higher than the revenue-maximizing price (assuming positive costs). This makes intuitive sense — when you account for costs, you want to sell fewer units at a higher margin."
+  },
+  {
+    "objectID": "posts/simple-pricing-model/index.html#adding-inventory-constraints",
+    "href": "posts/simple-pricing-model/index.html#adding-inventory-constraints",
+    "title": "Building a Simple Pricing Model in Python",
+    "section": "Adding inventory constraints",
+    "text": "Adding inventory constraints\nWhat if you have limited inventory? You need to ensure \\(Q(p) \\leq S\\) where \\(S\\) is your stock:\ninventory = 80\n\n# Minimum price to not exceed inventory\np_min_inventory = (a_hat - inventory) / b_hat\n\n# Constrained optimal price\np_star_constrained = max(p_star_profit, p_min_inventory)\n\nprint(f\"Unconstrained optimal:  ${p_star_profit:.2f}\")\nprint(f\"Min price for inventory: ${p_min_inventory:.2f}\")\nprint(f\"Constrained optimal:    ${p_star_constrained:.2f}\")"
+  },
+  {
+    "objectID": "posts/simple-pricing-model/index.html#putting-it-all-together",
+    "href": "posts/simple-pricing-model/index.html#putting-it-all-together",
+    "title": "Building a Simple Pricing Model in Python",
+    "section": "Putting it all together",
+    "text": "Putting it all together\nHere’s a clean function that wraps the full pipeline:\ndef optimize_price(\n    data: pd.DataFrame,\n    unit_cost: float = 0,\n    inventory: float | None = None,\n    price_col: str = \"price\",\n    quantity_col: str = \"quantity\",\n) -&gt; dict:\n    \"\"\"Estimate demand and find optimal price.\"\"\"\n    model = LinearRegression()\n    model.fit(data[[price_col]], data[quantity_col])\n\n    a = model.intercept_\n    b = -model.coef_[0]\n\n    # Profit-maximizing price\n    p_star = (a + b * unit_cost) / (2 * b)\n\n    # Apply inventory constraint\n    if inventory is not None:\n        p_min = (a - inventory) / b\n        p_star = max(p_star, p_min)\n\n    q_star = a - b * p_star\n    revenue = p_star * q_star\n    profit = (p_star - unit_cost) * q_star\n\n    return {\n        \"optimal_price\": round(p_star, 2),\n        \"expected_quantity\": round(q_star, 1),\n        \"expected_revenue\": round(revenue, 2),\n        \"expected_profit\": round(profit, 2),\n        \"demand_intercept\": round(a, 2),\n        \"demand_slope\": round(b, 4),\n    }\n\nresult = optimize_price(data, unit_cost=12, inventory=80)\nfor k, v in result.items():\n    print(f\"  {k}: {v}\")"
+  },
+  {
+    "objectID": "posts/simple-pricing-model/index.html#limitations",
+    "href": "posts/simple-pricing-model/index.html#limitations",
+    "title": "Building a Simple Pricing Model in Python",
+    "section": "Limitations",
+    "text": "Limitations\nThis model is intentionally simple. Real-world pricing systems need to handle:\n\nNon-linear demand — the linear assumption breaks at extreme prices\nCompetitor pricing — your demand depends on what others charge\nTime dynamics — demand patterns shift over hours, days, and seasons\nMultiple products — pricing one product affects demand for others\n\nWe’ll tackle these in upcoming posts. But even this simple model captures the core logic: estimate demand, define an objective, optimize."
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Theory and practice of dynamic pricing",
+    "section": "",
+    "text": "Building a Simple Pricing Model in Python\n\n\n\npython\n\nmodeling\n\ntutorial\n\n\n\nFrom demand estimation to price optimization — a hands-on walkthrough of building your first dynamic pricing model.\n\n\n\n\n\nFeb 14, 2026\n\n\n\n\n\n\n\n\n\n\n\n\nDemand Curves and Price Elasticity\n\n\n\nfundamentals\n\neconomics\n\nmath\n\n\n\nUnderstanding the relationship between price and demand — the foundation of any pricing strategy.\n\n\n\n\n\nFeb 1, 2026\n\n\n\n\n\n\n\n\n\n\n\n\nWhat Is Dynamic Pricing?\n\n\n\nfundamentals\n\neconomics\n\n\n\nAn introduction to dynamic pricing — what it is, where it shows up in everyday life, and why it matters for modern businesses.\n\n\n\n\n\nJan 15, 2026\n\n\n\n\n\nNo matching items"
+  }
+]

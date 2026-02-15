@@ -1,0 +1,1027 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss  xmlns:atom="http://www.w3.org/2005/Atom" 
+      xmlns:media="http://search.yahoo.com/mrss/" 
+      xmlns:content="http://purl.org/rss/1.0/modules/content/" 
+      xmlns:dc="http://purl.org/dc/elements/1.1/" 
+      version="2.0">
+<channel>
+<title>Kernyl</title>
+<link>https://www.kernyl.io/</link>
+<atom:link href="https://www.kernyl.io/index.xml" rel="self" type="application/rss+xml"/>
+<description>Exploring the theory and practice of dynamic pricing</description>
+<generator>quarto-1.8.27</generator>
+<lastBuildDate>Sat, 14 Feb 2026 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>Building a Simple Pricing Model in Python</title>
+  <dc:creator>Alek Racicot</dc:creator>
+  <link>https://www.kernyl.io/posts/simple-pricing-model/</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="from-theory-to-code" class="level2">
+<h2 class="anchored" data-anchor-id="from-theory-to-code">From theory to code</h2>
+<p>In the previous posts, we covered the intuition behind dynamic pricing and the math of demand curves. Now let’s put it together into a working model.</p>
+<p>The workflow is straightforward:</p>
+<ol type="1">
+<li>Generate (or collect) historical price-demand data</li>
+<li>Estimate a demand curve</li>
+<li>Optimize price to maximize revenue (or profit)</li>
+</ol>
+</section>
+<section id="step-1-simulating-data" class="level2">
+<h2 class="anchored" data-anchor-id="step-1-simulating-data">Step 1: Simulating data</h2>
+<p>In practice, you’d pull this from your transaction database. Here we’ll simulate realistic-looking data:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> numpy <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> np</span>
+<span id="cb1-2"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> pandas <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> pd</span>
+<span id="cb1-3"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> scipy.optimize <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> minimize_scalar</span>
+<span id="cb1-4"></span>
+<span id="cb1-5">np.random.seed(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">42</span>)</span>
+<span id="cb1-6"></span>
+<span id="cb1-7"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># True demand parameters (unknown in practice)</span></span>
+<span id="cb1-8">TRUE_A <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">200</span></span>
+<span id="cb1-9">TRUE_B <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3.5</span></span>
+<span id="cb1-10"></span>
+<span id="cb1-11">n_obs <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">500</span></span>
+<span id="cb1-12">prices <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.random.uniform(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">50</span>, n_obs)</span>
+<span id="cb1-13">noise <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.random.normal(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">8</span>, n_obs)</span>
+<span id="cb1-14">quantities <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.maximum(TRUE_A <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> TRUE_B <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> prices <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> noise, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>)</span>
+<span id="cb1-15"></span>
+<span id="cb1-16">data <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pd.DataFrame({<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"price"</span>: prices, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"quantity"</span>: quantities})</span>
+<span id="cb1-17">data.head()</span></code></pre></div></div>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>price</th>
+<th>quantity</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>24.87</td>
+<td>117.96</td>
+</tr>
+<tr class="even">
+<td>38.59</td>
+<td>60.43</td>
+</tr>
+<tr class="odd">
+<td>15.60</td>
+<td>152.11</td>
+</tr>
+<tr class="even">
+<td>41.22</td>
+<td>51.87</td>
+</tr>
+<tr class="odd">
+<td>29.75</td>
+<td>96.54</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="step-2-estimating-the-demand-curve" class="level2">
+<h2 class="anchored" data-anchor-id="step-2-estimating-the-demand-curve">Step 2: Estimating the demand curve</h2>
+<p>A simple linear regression gives us <img src="https://latex.codecogs.com/png.latex?%5Chat%7Ba%7D"> and <img src="https://latex.codecogs.com/png.latex?%5Chat%7Bb%7D">:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> sklearn.linear_model <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> LinearRegression</span>
+<span id="cb2-2"></span>
+<span id="cb2-3">model <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> LinearRegression()</span>
+<span id="cb2-4">model.fit(data[[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"price"</span>]], data[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"quantity"</span>])</span>
+<span id="cb2-5"></span>
+<span id="cb2-6">a_hat <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> model.intercept_</span>
+<span id="cb2-7">b_hat <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span>model.coef_[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>]  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># negate because Q = a - b*p</span></span>
+<span id="cb2-8"></span>
+<span id="cb2-9"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"Estimated demand: Q = </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>a_hat<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:.1f}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;"> - </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>b_hat<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:.2f}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;"> * p"</span>)</span>
+<span id="cb2-10"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"True demand:      Q = </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>TRUE_A<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;"> - </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>TRUE_B<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;"> * p"</span>)</span></code></pre></div></div>
+<p>With 500 observations and moderate noise, the estimates should be close to the true values.</p>
+</section>
+<section id="step-3-optimizing-price" class="level2">
+<h2 class="anchored" data-anchor-id="step-3-optimizing-price">Step 3: Optimizing price</h2>
+<p>Given our estimated demand curve, the revenue function is:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0AR(p)%20=%20p%20%5Ccdot%20%5Chat%7BQ%7D(p)%20=%20p%20%5Ccdot%20(%5Chat%7Ba%7D%20-%20%5Chat%7Bb%7D%20%5Ccdot%20p)%0A"></p>
+<p>We can solve this analytically or numerically:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Analytical solution</span></span>
+<span id="cb3-2">p_star_analytical <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> a_hat <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> (<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> b_hat)</span>
+<span id="cb3-3"></span>
+<span id="cb3-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Numerical (useful for more complex demand curves)</span></span>
+<span id="cb3-5">result <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> minimize_scalar(</span>
+<span id="cb3-6">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">lambda</span> p: <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span>(p <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> (a_hat <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> b_hat <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> p)),  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># negative because we minimize</span></span>
+<span id="cb3-7">    bounds<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, a_hat <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> b_hat),</span>
+<span id="cb3-8">    method<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bounded"</span>,</span>
+<span id="cb3-9">)</span>
+<span id="cb3-10">p_star_numerical <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> result.x</span>
+<span id="cb3-11"></span>
+<span id="cb3-12"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"Optimal price (analytical): $</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>p_star_analytical<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:.2f}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span>
+<span id="cb3-13"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"Optimal price (numerical):  $</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>p_star_numerical<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:.2f}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span>
+<span id="cb3-14"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"Expected revenue:           $</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>p_star_analytical <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> (a_hat <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> b_hat <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> p_star_analytical)<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:.2f}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span></code></pre></div></div>
+</section>
+<section id="adding-cost-structure" class="level2">
+<h2 class="anchored" data-anchor-id="adding-cost-structure">Adding cost structure</h2>
+<p>Revenue maximization ignores costs. If we have a per-unit cost <img src="https://latex.codecogs.com/png.latex?c">, we want to maximize <strong>profit</strong>:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5CPi(p)%20=%20(p%20-%20c)%20%5Ccdot%20(%5Chat%7Ba%7D%20-%20%5Chat%7Bb%7D%20%5Ccdot%20p)%0A"></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1">unit_cost <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">12</span>  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># $ per unit</span></span>
+<span id="cb4-2"></span>
+<span id="cb4-3">p_star_profit <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> (a_hat <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> b_hat <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> unit_cost) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> (<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> b_hat)</span>
+<span id="cb4-4">expected_profit <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> (p_star_profit <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> unit_cost) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> (a_hat <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> b_hat <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> p_star_profit)</span>
+<span id="cb4-5"></span>
+<span id="cb4-6"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"Profit-maximizing price: $</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>p_star_profit<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:.2f}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span>
+<span id="cb4-7"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"Expected profit:         $</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>expected_profit<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:.2f}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span></code></pre></div></div>
+<p>The profit-maximizing price is always higher than the revenue-maximizing price (assuming positive costs). This makes intuitive sense — when you account for costs, you want to sell fewer units at a higher margin.</p>
+</section>
+<section id="adding-inventory-constraints" class="level2">
+<h2 class="anchored" data-anchor-id="adding-inventory-constraints">Adding inventory constraints</h2>
+<p>What if you have limited inventory? You need to ensure <img src="https://latex.codecogs.com/png.latex?Q(p)%20%5Cleq%20S"> where <img src="https://latex.codecogs.com/png.latex?S"> is your stock:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1">inventory <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">80</span></span>
+<span id="cb5-2"></span>
+<span id="cb5-3"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Minimum price to not exceed inventory</span></span>
+<span id="cb5-4">p_min_inventory <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> (a_hat <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> inventory) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> b_hat</span>
+<span id="cb5-5"></span>
+<span id="cb5-6"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Constrained optimal price</span></span>
+<span id="cb5-7">p_star_constrained <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">max</span>(p_star_profit, p_min_inventory)</span>
+<span id="cb5-8"></span>
+<span id="cb5-9"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"Unconstrained optimal:  $</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>p_star_profit<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:.2f}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span>
+<span id="cb5-10"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"Min price for inventory: $</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>p_min_inventory<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:.2f}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span>
+<span id="cb5-11"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"Constrained optimal:    $</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>p_star_constrained<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:.2f}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span></code></pre></div></div>
+</section>
+<section id="putting-it-all-together" class="level2">
+<h2 class="anchored" data-anchor-id="putting-it-all-together">Putting it all together</h2>
+<p>Here’s a clean function that wraps the full pipeline:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> optimize_price(</span>
+<span id="cb6-2">    data: pd.DataFrame,</span>
+<span id="cb6-3">    unit_cost: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">float</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>,</span>
+<span id="cb6-4">    inventory: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">float</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">None</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">None</span>,</span>
+<span id="cb6-5">    price_col: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">str</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"price"</span>,</span>
+<span id="cb6-6">    quantity_col: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">str</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"quantity"</span>,</span>
+<span id="cb6-7">) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-&gt;</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">dict</span>:</span>
+<span id="cb6-8">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"""Estimate demand and find optimal price."""</span></span>
+<span id="cb6-9">    model <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> LinearRegression()</span>
+<span id="cb6-10">    model.fit(data[[price_col]], data[quantity_col])</span>
+<span id="cb6-11"></span>
+<span id="cb6-12">    a <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> model.intercept_</span>
+<span id="cb6-13">    b <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span>model.coef_[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>]</span>
+<span id="cb6-14"></span>
+<span id="cb6-15">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Profit-maximizing price</span></span>
+<span id="cb6-16">    p_star <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> (a <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> b <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> unit_cost) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> (<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> b)</span>
+<span id="cb6-17"></span>
+<span id="cb6-18">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Apply inventory constraint</span></span>
+<span id="cb6-19">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> inventory <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">is</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">not</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">None</span>:</span>
+<span id="cb6-20">        p_min <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> (a <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> inventory) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> b</span>
+<span id="cb6-21">        p_star <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">max</span>(p_star, p_min)</span>
+<span id="cb6-22"></span>
+<span id="cb6-23">    q_star <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> a <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> b <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> p_star</span>
+<span id="cb6-24">    revenue <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> p_star <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> q_star</span>
+<span id="cb6-25">    profit <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> (p_star <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> unit_cost) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> q_star</span>
+<span id="cb6-26"></span>
+<span id="cb6-27">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> {</span>
+<span id="cb6-28">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"optimal_price"</span>: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">round</span>(p_star, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>),</span>
+<span id="cb6-29">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"expected_quantity"</span>: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">round</span>(q_star, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>),</span>
+<span id="cb6-30">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"expected_revenue"</span>: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">round</span>(revenue, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>),</span>
+<span id="cb6-31">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"expected_profit"</span>: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">round</span>(profit, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>),</span>
+<span id="cb6-32">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"demand_intercept"</span>: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">round</span>(a, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>),</span>
+<span id="cb6-33">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"demand_slope"</span>: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">round</span>(b, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>),</span>
+<span id="cb6-34">    }</span>
+<span id="cb6-35"></span>
+<span id="cb6-36">result <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> optimize_price(data, unit_cost<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">12</span>, inventory<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">80</span>)</span>
+<span id="cb6-37"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> k, v <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> result.items():</span>
+<span id="cb6-38">    <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"  </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>k<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">: </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>v<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span></code></pre></div></div>
+</section>
+<section id="limitations" class="level2">
+<h2 class="anchored" data-anchor-id="limitations">Limitations</h2>
+<p>This model is intentionally simple. Real-world pricing systems need to handle:</p>
+<ul>
+<li><strong>Non-linear demand</strong> — the linear assumption breaks at extreme prices</li>
+<li><strong>Competitor pricing</strong> — your demand depends on what others charge</li>
+<li><strong>Time dynamics</strong> — demand patterns shift over hours, days, and seasons</li>
+<li><strong>Multiple products</strong> — pricing one product affects demand for others</li>
+</ul>
+<p>We’ll tackle these in upcoming posts. But even this simple model captures the core logic: estimate demand, define an objective, optimize.</p>
+
+
+</section>
+
+ ]]></description>
+  <category>python</category>
+  <category>modeling</category>
+  <category>tutorial</category>
+  <guid>https://www.kernyl.io/posts/simple-pricing-model/</guid>
+  <pubDate>Sat, 14 Feb 2026 00:00:00 GMT</pubDate>
+  <media:content url="https://www.kernyl.io/posts/simple-pricing-model/thumbnail.jpg" medium="image" type="image/jpeg"/>
+</item>
+<item>
+  <title>Demand Curves and Price Elasticity</title>
+  <dc:creator>Alek Racicot</dc:creator>
+  <link>https://www.kernyl.io/posts/demand-curves-elasticity/</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="price-goes-up-demand-goes-down" class="level2">
+<h2 class="anchored" data-anchor-id="price-goes-up-demand-goes-down">Price goes up, demand goes down</h2>
+<p>The most fundamental relationship in pricing is the <strong>demand curve</strong>: as price increases, the quantity demanded typically decreases. This isn’t a law of physics — there are exceptions — but it holds remarkably well across most markets.</p>
+<p>Formally, we can write a demand function:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0AQ(p)%20=%20a%20-%20b%20%5Ccdot%20p%0A"></p>
+<p>where <img src="https://latex.codecogs.com/png.latex?Q"> is quantity demanded, <img src="https://latex.codecogs.com/png.latex?p"> is price, and <img src="https://latex.codecogs.com/png.latex?a">, <img src="https://latex.codecogs.com/png.latex?b"> are parameters that depend on the market. This linear form is a simplification, but it’s a useful starting point.</p>
+</section>
+<section id="price-elasticity-of-demand" class="level2">
+<h2 class="anchored" data-anchor-id="price-elasticity-of-demand">Price elasticity of demand</h2>
+<p>Not all products respond to price changes the same way. A 10% increase in the price of salt barely changes how much people buy. A 10% increase in the price of a luxury handbag might cut demand significantly.</p>
+<p><strong>Price elasticity of demand</strong> captures this:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Cepsilon%20=%20%5Cfrac%7B%5C%25%20%5CDelta%20Q%7D%7B%5C%25%20%5CDelta%20p%7D%20=%20%5Cfrac%7BdQ%7D%7Bdp%7D%20%5Ccdot%20%5Cfrac%7Bp%7D%7BQ%7D%0A"></p>
+<ul>
+<li><img src="https://latex.codecogs.com/png.latex?%7C%5Cepsilon%7C%20%3E%201">: <strong>elastic</strong> — demand is sensitive to price (luxury goods, entertainment)</li>
+<li><img src="https://latex.codecogs.com/png.latex?%7C%5Cepsilon%7C%20%3C%201">: <strong>inelastic</strong> — demand is insensitive to price (necessities, utilities)</li>
+<li><img src="https://latex.codecogs.com/png.latex?%7C%5Cepsilon%7C%20=%201">: <strong>unit elastic</strong> — a special case where revenue is maximized</li>
+</ul>
+</section>
+<section id="computing-elasticity-in-python" class="level2">
+<h2 class="anchored" data-anchor-id="computing-elasticity-in-python">Computing elasticity in Python</h2>
+<p>Let’s make this concrete with a quick example:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> numpy <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> np</span>
+<span id="cb1-2"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> matplotlib.pyplot <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> plt</span>
+<span id="cb1-3"></span>
+<span id="cb1-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Linear demand: Q = 100 - 2p</span></span>
+<span id="cb1-5">a, b <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span></span>
+<span id="cb1-6">prices <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.linspace(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">45</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">200</span>)</span>
+<span id="cb1-7">demand <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> a <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> b <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> prices</span>
+<span id="cb1-8"></span>
+<span id="cb1-9"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Elasticity at each price point</span></span>
+<span id="cb1-10">elasticity <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span>b <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> prices <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> demand</span>
+<span id="cb1-11"></span>
+<span id="cb1-12">fig, (ax1, ax2) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> plt.subplots(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, figsize<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>))</span>
+<span id="cb1-13"></span>
+<span id="cb1-14">ax1.plot(prices, demand, color<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#4a6fa5"</span>, linewidth<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>)</span>
+<span id="cb1-15">ax1.set_xlabel(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Price ($)"</span>)</span>
+<span id="cb1-16">ax1.set_ylabel(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Quantity demanded"</span>)</span>
+<span id="cb1-17">ax1.set_title(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Demand Curve"</span>)</span>
+<span id="cb1-18"></span>
+<span id="cb1-19">ax2.plot(prices, np.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">abs</span>(elasticity), color<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#c44e52"</span>, linewidth<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>)</span>
+<span id="cb1-20">ax2.axhline(y<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, color<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#999"</span>, linestyle<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"--"</span>, alpha<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.7</span>)</span>
+<span id="cb1-21">ax2.set_xlabel(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Price ($)"</span>)</span>
+<span id="cb1-22">ax2.set_ylabel(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"|Elasticity|"</span>)</span>
+<span id="cb1-23">ax2.set_title(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Price Elasticity"</span>)</span>
+<span id="cb1-24"></span>
+<span id="cb1-25">plt.tight_layout()</span>
+<span id="cb1-26">plt.show()</span></code></pre></div></div>
+</section>
+<section id="why-elasticity-matters-for-pricing" class="level2">
+<h2 class="anchored" data-anchor-id="why-elasticity-matters-for-pricing">Why elasticity matters for pricing</h2>
+<p>If demand is <strong>elastic</strong>, lowering your price increases revenue — you sell enough additional units to more than offset the lower price. If demand is <strong>inelastic</strong>, <em>raising</em> your price increases revenue — you lose few customers.</p>
+<p>The revenue-maximizing price occurs at unit elasticity (<img src="https://latex.codecogs.com/png.latex?%7C%5Cepsilon%7C%20=%201">). For our linear demand curve:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0Ap%5E*%20=%20%5Cfrac%7Ba%7D%7B2b%7D%0A"></p>
+<p>With <img src="https://latex.codecogs.com/png.latex?a%20=%20100"> and <img src="https://latex.codecogs.com/png.latex?b%20=%202">, the optimal price is $25.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Revenue = p * Q = p * (a - b*p)</span></span>
+<span id="cb2-2">revenue <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> prices <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> demand</span>
+<span id="cb2-3">optimal_price <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> a <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> (<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> b)</span>
+<span id="cb2-4">optimal_revenue <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> optimal_price <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> (a <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> b <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> optimal_price)</span>
+<span id="cb2-5"></span>
+<span id="cb2-6">plt.figure(figsize<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">6</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>))</span>
+<span id="cb2-7">plt.plot(prices, revenue, color<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#4a6fa5"</span>, linewidth<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>)</span>
+<span id="cb2-8">plt.axvline(x<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>optimal_price, color<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#c44e52"</span>, linestyle<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"--"</span>, alpha<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.7</span>)</span>
+<span id="cb2-9">plt.annotate(</span>
+<span id="cb2-10">    <span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"p* = $</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>optimal_price<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:.0f}</span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\n</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">R* = $</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>optimal_revenue<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:.0f}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>,</span>
+<span id="cb2-11">    xy<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>(optimal_price, optimal_revenue),</span>
+<span id="cb2-12">    xytext<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>(optimal_price <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>, optimal_revenue <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100</span>),</span>
+<span id="cb2-13">    arrowprops<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">dict</span>(arrowstyle<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-&gt;"</span>, color<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#666"</span>),</span>
+<span id="cb2-14">    fontsize<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span>,</span>
+<span id="cb2-15">)</span>
+<span id="cb2-16">plt.xlabel(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Price ($)"</span>)</span>
+<span id="cb2-17">plt.ylabel(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Revenue ($)"</span>)</span>
+<span id="cb2-18">plt.title(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Revenue vs. Price"</span>)</span>
+<span id="cb2-19">plt.tight_layout()</span>
+<span id="cb2-20">plt.show()</span></code></pre></div></div>
+</section>
+<section id="beyond-linear-demand" class="level2">
+<h2 class="anchored" data-anchor-id="beyond-linear-demand">Beyond linear demand</h2>
+<p>Real-world demand curves are rarely linear. Common alternatives include:</p>
+<ul>
+<li><strong>Log-linear</strong>: <img src="https://latex.codecogs.com/png.latex?%5Cln%20Q%20=%20a%20-%20b%20%5Cln%20p"> (constant elasticity)</li>
+<li><strong>Exponential</strong>: <img src="https://latex.codecogs.com/png.latex?Q%20=%20a%20%5Ccdot%20e%5E%7B-bp%7D"></li>
+<li><strong>Logistic</strong>: useful when demand saturates at high or low prices</li>
+</ul>
+<p>The choice of functional form matters — it determines how your model extrapolates outside the observed data range.</p>
+</section>
+<section id="next-up" class="level2">
+<h2 class="anchored" data-anchor-id="next-up">Next up</h2>
+<p>In the next post, we’ll use these ideas to build a complete pricing optimization model: estimate a demand curve from data, find the optimal price, and handle constraints like inventory limits.</p>
+
+
+</section>
+
+ ]]></description>
+  <category>fundamentals</category>
+  <category>economics</category>
+  <category>math</category>
+  <guid>https://www.kernyl.io/posts/demand-curves-elasticity/</guid>
+  <pubDate>Sun, 01 Feb 2026 00:00:00 GMT</pubDate>
+  <media:content url="https://www.kernyl.io/posts/demand-curves-elasticity/thumbnail.jpg" medium="image" type="image/jpeg"/>
+</item>
+<item>
+  <title>What Is Dynamic Pricing?</title>
+  <dc:creator>Alek Racicot</dc:creator>
+  <link>https://www.kernyl.io/posts/what-is-dynamic-pricing/</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="the-price-tag-is-a-suggestion" class="level2">
+<h2 class="anchored" data-anchor-id="the-price-tag-is-a-suggestion">The price tag is a suggestion</h2>
+<p>Walk into a grocery store and everything has a fixed price. A can of beans costs $1.29 today, tomorrow, and next week. But open a ride-sharing app during rush hour and you’ll notice something different: the price <em>changes</em>. It responds to demand, supply, time, and context.</p>
+<p>This is <strong>dynamic pricing</strong> — the practice of adjusting prices in real time (or near real time) based on market conditions.</p>
+</section>
+<section id="where-you-already-see-it" class="level2">
+<h2 class="anchored" data-anchor-id="where-you-already-see-it">Where you already see it</h2>
+<p>Dynamic pricing is not new. Airlines have done it for decades. A seat on a Tuesday morning flight in November costs a fraction of the same seat on a Friday evening in December. Hotels, electricity markets, and concert tickets all follow similar patterns.</p>
+<p>What <em>is</em> new is the scale and sophistication. With modern data infrastructure, even small e-commerce shops can implement pricing strategies that used to require teams of revenue analysts.</p>
+<blockquote class="blockquote">
+<p>“The right price is whatever someone is willing to pay” is a common oversimplification. In practice, dynamic pricing tries to find the price that maximizes a specific objective — revenue, profit, or market share.</p>
+</blockquote>
+</section>
+<section id="the-core-idea" class="level2">
+<h2 class="anchored" data-anchor-id="the-core-idea">The core idea</h2>
+<p>At its simplest, dynamic pricing asks:</p>
+<ul>
+<li><strong>What is the current demand?</strong></li>
+<li><strong>What is the available supply?</strong></li>
+<li><strong>What price maximizes our objective given the above?</strong></li>
+</ul>
+<p>The “objective” varies. An airline might optimize for total revenue across all seats. A ride-sharing platform might optimize for market balance — enough drivers on the road to keep wait times low.</p>
+</section>
+<section id="what-this-series-will-cover" class="level2">
+<h2 class="anchored" data-anchor-id="what-this-series-will-cover">What this series will cover</h2>
+<p>Over the next few posts, we’ll build up from basic economic intuition to working pricing models:</p>
+<ol type="1">
+<li>Demand curves and price elasticity</li>
+<li>A simple pricing model in Python</li>
+<li>Multi-product pricing and cannibalization</li>
+<li>Real-time pricing with bandit algorithms</li>
+</ol>
+<p>No PhD required — just some comfort with Python and basic statistics.</p>
+</section>
+<section id="a-word-of-caution" class="level2">
+<h2 class="anchored" data-anchor-id="a-word-of-caution">A word of caution</h2>
+<p>Dynamic pricing is powerful, but it comes with real ethical considerations. Surge pricing during emergencies, price discrimination that disproportionately affects certain groups, and opaque algorithms that customers can’t understand — these are all active areas of debate.</p>
+<p>We’ll touch on these issues as they come up. Good pricing isn’t just about maximizing a number.</p>
+
+
+</section>
+
+ ]]></description>
+  <category>fundamentals</category>
+  <category>economics</category>
+  <guid>https://www.kernyl.io/posts/what-is-dynamic-pricing/</guid>
+  <pubDate>Thu, 15 Jan 2026 00:00:00 GMT</pubDate>
+  <media:content url="https://www.kernyl.io/posts/what-is-dynamic-pricing/thumbnail.jpg" medium="image" type="image/jpeg"/>
+</item>
+</channel>
+</rss>
