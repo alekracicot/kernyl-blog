@@ -1,0 +1,3 @@
+# options applied to all posts
+freeze: true
+title-block-banner: false

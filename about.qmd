@@ -1,0 +1,15 @@
+---
+title: "About"
+image: profile.jpg
+about:
+  template: jolla
+  links:
+    - icon: github
+      text: GitHub
+      href: https://github.com/
+    - icon: linkedin
+      text: LinkedIn
+      href: https://linkedin.com/
+---
+
+This blog explores dynamic pricing from first principles — starting with economic intuition and building up to working models in Python. The goal is to make these ideas accessible to data scientists and engineers who want to understand pricing beyond the textbook.

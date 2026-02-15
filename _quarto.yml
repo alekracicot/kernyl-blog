@@ -1,0 +1,32 @@
+project:
+  type: website
+
+website:
+  title: "Kernyl"
+  description: "Exploring the theory and practice of dynamic pricing"
+  site-url: https://your-website-url.example.com
+  search: true
+  navbar:
+    left:
+      - text: Posts
+        href: index.qmd
+      - about.qmd
+    right:
+      - icon: github
+        href: https://github.com/
+      - icon: rss
+        href: index.xml
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+    toc-depth: 3
+    code-overflow: wrap
+    highlight-style: github
+    grid:
+      sidebar-width: 250px
+      body-width: 850px
+      margin-width: 250px
+      gutter-width: 1.5em

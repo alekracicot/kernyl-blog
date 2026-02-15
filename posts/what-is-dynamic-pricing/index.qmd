@@ -1,0 +1,49 @@
+---
+title: "What Is Dynamic Pricing?"
+author: "Alek Racicot"
+date: "2026-01-15"
+description: "An introduction to dynamic pricing — what it is, where it shows up in everyday life, and why it matters for modern businesses."
+categories: [fundamentals, economics]
+image: thumbnail.jpg
+---
+
+## The price tag is a suggestion
+
+Walk into a grocery store and everything has a fixed price. A can of beans costs $1.29 today, tomorrow, and next week. But open a ride-sharing app during rush hour and you'll notice something different: the price *changes*. It responds to demand, supply, time, and context.
+
+This is **dynamic pricing** — the practice of adjusting prices in real time (or near real time) based on market conditions.
+
+## Where you already see it
+
+Dynamic pricing is not new. Airlines have done it for decades. A seat on a Tuesday morning flight in November costs a fraction of the same seat on a Friday evening in December. Hotels, electricity markets, and concert tickets all follow similar patterns.
+
+What *is* new is the scale and sophistication. With modern data infrastructure, even small e-commerce shops can implement pricing strategies that used to require teams of revenue analysts.
+
+> "The right price is whatever someone is willing to pay" is a common oversimplification. In practice, dynamic pricing tries to find the price that maximizes a specific objective — revenue, profit, or market share.
+
+## The core idea
+
+At its simplest, dynamic pricing asks:
+
+- **What is the current demand?**
+- **What is the available supply?**
+- **What price maximizes our objective given the above?**
+
+The "objective" varies. An airline might optimize for total revenue across all seats. A ride-sharing platform might optimize for market balance — enough drivers on the road to keep wait times low.
+
+## What this series will cover
+
+Over the next few posts, we'll build up from basic economic intuition to working pricing models:
+
+1. Demand curves and price elasticity
+2. A simple pricing model in Python
+3. Multi-product pricing and cannibalization
+4. Real-time pricing with bandit algorithms
+
+No PhD required — just some comfort with Python and basic statistics.
+
+## A word of caution
+
+Dynamic pricing is powerful, but it comes with real ethical considerations. Surge pricing during emergencies, price discrimination that disproportionately affects certain groups, and opaque algorithms that customers can't understand — these are all active areas of debate.
+
+We'll touch on these issues as they come up. Good pricing isn't just about maximizing a number.
