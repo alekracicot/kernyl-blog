@@ -4,7 +4,7 @@ project:
 website:
   title: "Kernyl"
   description: "Exploring the theory and practice of dynamic pricing"
-  site-url: https://your-website-url.example.com
+  site-url: https://www.kernyl.io
   search: true
   navbar:
     left:
