@@ -5,6 +5,7 @@ website:
   title: "Kernyl"
   description: "Exploring the theory and practice of dynamic pricing"
   site-url: https://www.kernyl.io
+  favicon: favicon.svg
   search: true
   navbar:
     left:
