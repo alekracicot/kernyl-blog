@@ -27,9 +27,11 @@ The first and third questions are fundamentally **pricing** questions. Historica
 ## Littlewood's Rule
 Let's say your pricing team decided that the Saver fare should cost $262 round-trip, and that it would only be available until 20 days before departure and require staying at the destination for at least the weekend. These restrictions effectively prevent business customers from **buying down** to the Saver fare. Still, we face the decision of ** how many seats to protect for the full-fare business customers** , given that we expect some to purchase within the last 20 days prior to departure.
   
-If we knew exactly how many business customers would arrive, the problem would be trivial. Given that the business fare is more expensive, if we know 15 business customers will arrive close to flight departure, we should protect exactly 15 seats for those customers. Similarly, if business customers always booked before leisure customers, we could simply sell the full fare until demand is exhausted, then sell remaining seats at the saver fare. Unfortunately, demand is uncertain and varies from flight to flight—we might expect 15 business customers on average, but the actual number could be anywhere from 0 to 30 or more.
+If we knew exactly how many business customers would arrive, the problem would be trivial. Given that the business fare is more expensive, if we know 15 business customers will arrive close to flight departure, we should protect exactly 15 seats for those customers. Similarly, if business customers always booked before leisure customers, we could simply sell the full fare until demand is exhausted, then sell remaining seats at the saver fare. 
 
-Luckily, Littlewood's Rule [@littlewood1972] can be applied to find how many seats we should protect for our business customers.
+Unfortunately, airlines face **uncertain demand** and have good reasons to beleive that high value customers, such as business travelers, typically book closer to departure.
+
+Luckily for us in this toy example we can leverage seminal work in airline revenue management and appy what is now know as Littlewood's Rule [@littlewood1972] to find how many seats we should protect for our business customers.  The core idea it to protect seats for business customers until the expected marginal revenue from protecting an additional seat drops below the guaranteed revenue from selling the seat at the saver fare.
 
 ::: {.callout-important}
 ## The Key Insight
@@ -54,22 +56,22 @@ This means: protect seat $n$ if there's more than a 55% chance that business dem
 
 ### Interactive Simulation
 
-Try the simulation below to see Littlewood's Rule in action. Adjust the expected business demand (Poisson distributed) and the two fares to watch how the optimal protection level changes.
+Now it's your turn. The chart below shows the expected marginal value of protecting each additional seat for business class — that is, $P(\text{Business demand} \geq n) \times \$476$. The dashed line marks the saver fare. Use the slider to choose how many seats you'd protect, and see how your decision affects expected revenue.
 
 ```{=html}
-<iframe src="littlewood_rule_sim.html" width="100%" height="650px" style="border:none;"></iframe>
+<iframe src="littlewood_rule_sim.html" width="100%" height="750px" style="border:none;"></iframe>
 ```
 
 ### Key Insights
 
-What you're seeing in the simulation is the foundation of modern revenue management:
+A few things to notice as you experiment with the simulation:
 
-1. **Protection increases with demand**: Higher expected business demand means more seats should be protected for the high-fare class.
+1. **Marginal analysis**: Each seat is evaluated independently. The expected value of protecting seat $n$ depends only on the probability that business demand reaches $n$.
 
 2. **The fare ratio matters**: With our 55% threshold (262/476), we protect seats as long as there's better than a 55% chance of selling them at the business fare.
 
-3. **Probability-based decisions**: We're not predicting exactly how many business customers will show up—we're making optimal decisions under uncertainty.
+3. **Protecting too few seats** means selling cheap seats that could have been sold at the business fare. **Protecting too many** means empty seats that could have been sold at the saver fare. The optimal point balances these two risks.
 
-4. **Marginal analysis**: Each seat is evaluated independently based on its expected marginal value.
+4. **Probability-based decisions**: We're not predicting exactly how many business customers will show up—we're making optimal decisions under uncertainty.
 
 Littlewood's Rule [-@littlewood1972] remains one of the most elegant results in revenue management. While modern systems use more sophisticated methods (like EMSR-b for multiple fare classes and network optimization for connecting flights), the core principle of protecting inventory for higher-value customers persists throughout the field.
