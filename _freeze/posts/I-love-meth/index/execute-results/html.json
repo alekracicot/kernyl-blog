@@ -1,0 +1,12 @@
+{
+  "hash": "82418c712646d12ee3fb76d3b5b43b8a",
+  "result": {
+    "engine": "jupyter",
+    "markdown": "---\ntitle: \"Meth is better then you think\"\nauthor: \"Alek Racicot\"\ndate: \"2026-02-14\"\ndescription: \"A true story - from the streets to netflix\"\ncategories: [python, modeling, tutorial, fun ]\nimage: thumbnail.jpg\n---\n\n\n### METH IS GOOD FOR YOU \n\nI know you will love this \n\n::: {#363fd894 .cell execution_count=1}\n``` {.python .cell-code}\ncodeblock = 1\nprint(codeblock)\n```\n\n::: {.cell-output .cell-output-stdout}\n```\n1\n```\n:::\n:::\n\n\n",
+    "supporting": [
+      "index_files"
+    ],
+    "filters": [],
+    "includes": {}
+  }
+}

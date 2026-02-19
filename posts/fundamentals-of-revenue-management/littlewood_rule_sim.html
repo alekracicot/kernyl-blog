@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: transparent; padding: 0; color: #1e293b; }
+  .container { max-width: 720px; margin: 0 auto; }
+  .controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+  .slider-group { display: flex; flex-direction: column; gap: 8px; }
+  .slider-group label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #64748b; }
+  .slider-group input[type=range] { width: 100%; accent-color: #3b82f6; cursor: pointer; }
+  .slider-val { font-size: 20px; font-weight: 700; color: #1e293b; }
+  .chart-wrap { background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+  .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .card { border-radius: 8px; padding: 14px 16px; border: 1px solid; }
+  .card-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+  .card-value { font-size: 28px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+  .card-sub { font-size: 11px; color: #94a3b8; }
+  .card.blue { background: #eff6ff; border-color: #bfdbfe; }
+  .card.blue .card-label { color: #3b82f6; }
+  .card.blue .card-value { color: #2563eb; }
+  .card.slate { background: transparent; border-color: #e2e8f0; }
+  .card.slate .card-label { color: #94a3b8; }
+  .card.slate .card-value { color: #64748b; }
+  .card.purple { background: #fdf4ff; border-color: #e9d5ff; }
+  .card.purple .card-label { color: #9333ea; }
+  .card.purple .card-value { color: #9333ea; }
+  .note { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+  .error { font-size: 12px; color: #ef4444; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 8px 12px; margin-bottom: 12px; display: none; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="controls">
+    <div class="slider-group">
+      <label>Expected Business Demand (mean)</label>
+      <input type="range" id="meanDemand" min="5" max="60" step="1" value="30">
+      <div class="slider-val"><span id="meanDemandVal">30</span></div>
+    </div>
+    <div class="slider-group">
+      <label>Business Fare ($)</label>
+      <input type="range" id="businessFare" min="100" max="1000" step="10" value="476">
+      <div class="slider-val">$<span id="businessFareVal">476</span></div>
+    </div>
+    <div class="slider-group">
+      <label>Saver Fare ($)</label>
+      <input type="range" id="saverFare" min="50" max="900" step="10" value="262">
+      <div class="slider-val">$<span id="saverFareVal">262</span></div>
+    </div>
+  </div>
+
+  <div class="error" id="fareError">Saver fare must be less than business fare.</div>
+
+  <div class="chart-wrap">
+    <canvas id="chart"></canvas>
+  </div>
+
+  <div class="stats">
+    <div class="card blue">
+      <div class="card-label">Protect for business</div>
+      <div class="card-value" id="statProtect">—</div>
+      <div class="card-sub">seats @ $<span id="statBusinessFare">476</span> (of 200)</div>
+    </div>
+    <div class="card slate">
+      <div class="card-label">Sell at saver fare</div>
+      <div class="card-value" id="statSaver">—</div>
+      <div class="card-sub">seats @ $<span id="statSaverFare">262</span></div>
+    </div>
+    <div class="card purple">
+      <div class="card-label">Critical threshold</div>
+      <div class="card-value" id="statThreshold">55.0%</div>
+      <div class="card-sub">P(demand ≥ n)</div>
+    </div>
+  </div>
+
+  <p class="note">Blue bars = seats worth protecting. Gray bars should be released to saver fare. Capacity fixed at 200 seats.</p>
+</div>
+
+<script>
+  const TOTAL_SEATS = 200;
+
+  function poissonPMF(k, lambda) {
+    let p = Math.exp(-lambda);
+    for (let i = 1; i <= k; i++) p *= lambda / i;
+    return p;
+  }
+
+  function probGTE(n, lambda, maxK = 200) {
+    let p = 0;
+    for (let k = n; k <= maxK; k++) p += poissonPMF(k, lambda);
+    return p;
+  }
+
+  function compute(meanDemand, businessFare, saverFare) {
+    const seats = [], values = [], colors = [];
+    let optimalProtection = 0;
+    for (let n = 1; n <= 80; n++) {
+      const prob    = probGTE(n, meanDemand);
+      const ev      = prob * businessFare;
+      const protect = ev > saverFare;
+      seats.push(n);
+      values.push(parseFloat(ev.toFixed(2)));
+      colors.push(protect ? "#3b82f6" : "#cbd5e1");
+      if (protect) optimalProtection = n;
+    }
+    return { seats, values, colors, optimalProtection };
+  }
+
+  let currentSaverFare = 262;
+
+  const chart = new Chart(document.getElementById("chart").getContext("2d"), {
+    type: "bar",
+    data: { labels: [], datasets: [{ data: [], backgroundColor: [], borderWidth: 0, borderRadius: 2 }] },
+    options: {
+      responsive: true,
+      animation: { duration: 120 },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: items => `Seat ${items[0].label}`,
+            label: item => {
+              const prob = probGTE(parseInt(item.label), parseInt(document.getElementById("meanDemand").value));
+              return [`P(demand ≥ ${item.label}): ${(prob * 100).toFixed(1)}%`, `Expected value: $${item.raw.toFixed(2)}`];
+            }
+          }
+        }
+      },
+      scales: {
+        x: { title: { display: true, text: "Seats protected for business class", color: "#64748b", font: { size: 12 } }, grid: { display: false }, ticks: { maxTicksLimit: 16, color: "#94a3b8" } },
+        y: { title: { display: true, text: "Expected marginal revenue ($)", color: "#64748b", font: { size: 12 } }, ticks: { callback: v => `$${v}`, color: "#94a3b8" }, grid: { color: "#f1f5f9" } }
+      }
+    },
+    plugins: [{
+      id: "thresholdLine",
+      afterDraw(c) {
+        const { ctx, chartArea: { left, right }, scales: { y } } = c;
+        const yPos = y.getPixelForValue(currentSaverFare);
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(left, yPos);
+        ctx.lineTo(right, yPos);
+        ctx.strokeStyle = "#d94a6e";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = "#d94a6e";
+        ctx.font = "11px system-ui";
+        ctx.textAlign = "right";
+        ctx.fillText(`Saver fare — $${currentSaverFare}`, right, yPos - 6);
+        ctx.restore();
+      }
+    }]
+  });
+
+  function update() {
+    const meanDemand   = parseInt(document.getElementById("meanDemand").value);
+    const businessFare = parseInt(document.getElementById("businessFare").value);
+    const saverFare    = parseInt(document.getElementById("saverFare").value);
+
+    document.getElementById("meanDemandVal").textContent    = meanDemand;
+    document.getElementById("businessFareVal").textContent  = businessFare;
+    document.getElementById("saverFareVal").textContent     = saverFare;
+
+    const errorEl = document.getElementById("fareError");
+    if (saverFare >= businessFare) { errorEl.style.display = "block"; return; }
+    errorEl.style.display = "none";
+
+    currentSaverFare = saverFare;
+    const { seats, values, colors, optimalProtection } = compute(meanDemand, businessFare, saverFare);
+
+    chart.data.labels = seats;
+    chart.data.datasets[0].data = values;
+    chart.data.datasets[0].backgroundColor = colors;
+    chart.update();
+
+    document.getElementById("statProtect").textContent      = optimalProtection;
+    document.getElementById("statSaver").textContent        = TOTAL_SEATS - optimalProtection;
+    document.getElementById("statThreshold").textContent    = ((saverFare / businessFare) * 100).toFixed(1) + "%";
+    document.getElementById("statBusinessFare").textContent = businessFare;
+    document.getElementById("statSaverFare").textContent    = saverFare;
+  }
+
+  ["meanDemand", "businessFare", "saverFare"].forEach(id =>
+    document.getElementById(id).addEventListener("input", update)
+  );
+
+  update();
+</script>
+</body>
+</html>

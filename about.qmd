@@ -1,15 +1,56 @@
 ---
 title: "About"
-image: profile.jpg
-about:
-  template: jolla
-  links:
-    - icon: github
-      text: GitHub
-      href: https://github.com/
-    - icon: linkedin
-      text: LinkedIn
-      href: https://linkedin.com/
 ---
 
-This blog explores dynamic pricing from first principles — starting with economic intuition and building up to working models in Python. The goal is to make these ideas accessible to data scientists and engineers who want to understand pricing beyond the textbook.
+*Welcome to the exciting world of revenue management and dynamic pricing.*
+
+Whether you're an executive with years of practical experience in the airline business, a data scientist looking at applying your skills in the field, or just dreaming of a career in revenue management, our blog is intended to be a place to deepen your understanding of the principles behind RM. Our domain knowledge comes from working for various airlines around the world, but the principles we talk about here extend to other industries that price perishable assets, such as hotels or vacation rentals, car rentals, or events etc.
+
+---
+
+
+## What to Expect
+
+We have diverse interests and hope to write for an equally diverse audience. Some posts will be geared toward revenue managers, while others will be more technical in nature.
+
+We’ll use categories to help you easily filter and find content that matches your interests. We’re currently building a pipeline of ideas around:
+
+- Fundamentals of Revenue Management (a back-to-basics series)
+- Experimentation in Airlines
+- Paper Reviews and Discussions
+
+The theme and structure of this blog were inspired by [Vineeth's Digital Garden](https://www.vineeth.io/garden).
+
+## The Authors
+
+::: {.grid}
+
+::: {.g-col-12 .g-col-md-6}
+::: {.author-card}
+
+![](images/alek-placeholder.jpeg){.author-photo fig-alt="Alek Racicot"}
+
+### Alek Racicot
+
+Hey, I’m Alek. I hold a Master’s in Economics from McGill University and work as a data scientist on dynamic pricing algorithms in the airline industry. I’ve worked with both full-service carriers and low-cost carriers. I’m particularly passionate about causal inference and experimentation. 
+
+[![](https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/linkedin.svg){.linkedin-icon} LinkedIn](https://www.linkedin.com/in/alek-racicot-542394149/){.author-linkedin}
+
+:::
+:::
+
+::: {.g-col-12 .g-col-md-6}
+::: {.author-card}
+
+![](images/bazyli-placeholder.jpeg){.author-photo fig-alt="Bazyli Szymanski"}
+
+### Bazyli Szymanski
+
+Hi, I’m Bazyli. I hold a PhD in Transportation Science from MIT, where I focused on revenue management. Since then, I’ve worked in revenue management with airlines across Europe and North America. I’m a huge airline nerd and love just about everything related to travel.
+
+[![](https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/linkedin.svg){.linkedin-icon} LinkedIn](https://www.linkedin.com/in/bazyli/){.author-linkedin}
+
+:::
+:::
+
+:::

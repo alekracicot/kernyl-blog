@@ -1,0 +1,75 @@
+---
+title: "Foundations of Revenue Management: From Deregulation to Littlewood's Rule"
+author: "Bazyli Szymanski & Alek Racicot"
+date: "2026-02-17"
+description: "Airline deregulation, the two-fare problem, and Littlewood's Rule."
+categories: [Revenue Management, Fundamentals]
+image: thumbnail.jpg
+format:
+  html:
+    self-contained: false
+bibliography: references.bib
+resources:
+  - littlewood_sim.html
+---
+
+## A walk down the deregulation lane
+The history of airline revenue management is often told through the tale of airline industry deregulation. Until the late 1970s, airlines in the US were essentially limited to offering a single fare per cabin (Economy / First class), with prices dictated by the Civil Aeronautics Board. Regardless of the airline, time to departure, or period of travel, in 1969 a customer would pay exactly $296 ($2,624 in 2026 dollars!) for a round-trip economy fare from Boston (BOS) to Los Angeles (LAX). Flying was a luxury for most, and from the perspective of this story—an inefficient way of pricing, where airlines were completely missing out on the more price-sensitive market segment, **leading to lower capacity utilization and load factors**. In 1978, Jimmy Carter signed the Airline Deregulation Act, which opened the doors for airlines to compete on fares.  
+
+By 1979, the full economy fare for the BOS-LAX **origin-destination (OD)** market had risen to $476 ($2,133 in 2026, slightly less than a decade earlier when adjusted for inflation). That said, as an airline executive you now have the freedom to reduce that fare or introduce an additional price point targeting the more price-sensitive leisure customer segment. When adding this additional price point, a few critical questions arise:
+
+- How much should the new fare cost?
+- How many seats should we sell at that new fare? 
+- How do we prevent the cheaper fare from being purchased by business customers who could have afforded to pay the full fare? 
+
+The first and third questions are fundamentally **pricing** questions. Historically, pricing has been disconnected from revenue management—a separation that remains in many legacy airlines today. The second question, however, is at the heart of revenue management: **inventory control**. Even with perfectly set fares and restrictions, we still need to decide how many seats to allocate to each fare class.
+
+## Littlewood's Rule
+Let's say your pricing team decided that the Saver fare should cost $262 round-trip, and that it would only be available until 20 days before departure and require staying at the destination for at least the weekend. These restrictions effectively prevent business customers from **buying down** to the Saver fare. Still, we face the decision of ** how many seats to protect for the full-fare business customers** , given that we expect some to purchase within the last 20 days prior to departure.
+  
+If we knew exactly how many business customers would arrive, the problem would be trivial. Given that the business fare is more expensive, if we know 15 business customers will arrive close to flight departure, we should protect exactly 15 seats for those customers. Similarly, if business customers always booked before leisure customers, we could simply sell the full fare until demand is exhausted, then sell remaining seats at the saver fare. Unfortunately, demand is uncertain and varies from flight to flight—we might expect 15 business customers on average, but the actual number could be anywhere from 0 to 30 or more.
+
+Luckily, Littlewood's Rule [@littlewood1972] can be applied to find how many seats we should protect for our business customers.
+
+::: {.callout-important}
+## The Key Insight
+
+We protect seats for business customers until the expected marginal revenue from protecting an additional seat drops below the guaranteed revenue from selling the seat at the saver fare.
+:::
+
+
+**Littlewood's Rule** states: Protect seat $n$ if and only if:
+
+$$P(\text{Business demand} \geq n) \times \text{Business Fare} > \text{Saver Fare}$$
+
+Where $n$ is the number of seats we're considering protecting. Rearranging:
+
+$$P(\text{Business demand} \geq n) > \frac{\text{Saver Fare}}{\text{Business Fare}}$$
+
+In our example with a $262 saver fare and $476 business fare:
+
+$$P(\text{Business demand} \geq n) > \frac{262}{476} = 0.55$$
+
+This means: protect seat $n$ if there's more than a 55% chance that business demand will be high enough to sell it.
+
+### Interactive Simulation
+
+Try the simulation below to see Littlewood's Rule in action. Adjust the expected business demand (Poisson distributed) and the two fares to watch how the optimal protection level changes.
+
+```{=html}
+<iframe src="littlewood_rule_sim.html" width="100%" height="650px" style="border:none;"></iframe>
+```
+
+### Key Insights
+
+What you're seeing in the simulation is the foundation of modern revenue management:
+
+1. **Protection increases with demand**: Higher expected business demand means more seats should be protected for the high-fare class.
+
+2. **The fare ratio matters**: With our 55% threshold (262/476), we protect seats as long as there's better than a 55% chance of selling them at the business fare.
+
+3. **Probability-based decisions**: We're not predicting exactly how many business customers will show up—we're making optimal decisions under uncertainty.
+
+4. **Marginal analysis**: Each seat is evaluated independently based on its expected marginal value.
+
+Littlewood's Rule [-@littlewood1972] remains one of the most elegant results in revenue management. While modern systems use more sophisticated methods (like EMSR-b for multiple fare classes and network optimization for connecting flights), the core principle of protecting inventory for higher-value customers persists throughout the field.

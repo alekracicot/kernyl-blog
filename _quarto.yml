@@ -8,6 +8,7 @@ website:
   description: "Exploring the theory and practice of dynamic pricing"
   site-url: https://www.kernyl.io
   favicon: favicon.svg
+  google-analytics: "G-RCQGEPG5XP"
   search: true
   navbar:
     left:
@@ -16,7 +17,7 @@ website:
       - about.qmd
     right:
       - icon: github
-        href: https://github.com/
+        href: https://github.com/alekracicot/kernyl-blog
       - icon: rss
         href: index.xml
 
