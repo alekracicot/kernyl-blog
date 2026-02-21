@@ -13,18 +13,20 @@ resources:
   - littlewood_sim.html
 ---
 
-This post is the first in the series on fundamentals of Revenue Management, where we introduce key ideas and terminology behind what's inside revenue management systems. 
+This post is the first in the series on fundamentals of revenue management (RM), where we introduce key ideas and terminology behind systems that optimize prices offered by capacity-constrained businesses. While we take an airline perspective, the foundational ideas we introduce here equally apply to other businesses such as hotels, car rentals, events, or even fast fashion. 
 
 ## A walk down the deregulation lane
-The history of airline revenue management is often told through the tale of airline industry deregulation. Until the late 1970s, airlines in the US were essentially limited to offering a single fare per cabin (Economy / First class), with prices dictated by the Civil Aeronautics Board. Regardless of the airline, time to departure, or period of travel, in 1969 a customer would pay exactly $296 ($2,624 in 2026 dollars!) for a round-trip economy fare from Boston (BOS) to Los Angeles (LAX). Flying was a luxury for most, and from the perspective of this story—an inefficient way of pricing, where airlines were completely missing out on the more price-sensitive market segment, **leading to lower capacity utilization and load factors**. In 1978, Jimmy Carter signed the Airline Deregulation Act, which opened the doors for airlines to compete on fares.  
+The history of airline revenue management is often told through the tale of airline industry deregulation. Until the late 1970s, airlines in the US were essentially limited to offering a single fare per cabin (Economy / First class), with prices dictated by the Civil Aeronautics Board. Regardless of the airline, time to departure, or period of travel, in 1969 a customer would pay exactly $296 ($2,624 in 2026 dollars!) for a round-trip economy fare from Boston (BOS) to Los Angeles (LAX). Flying, for the average customer, was expensive and airlines were limited to competing on product. That changed in 1978 when Jimmy Carter signed the Airline Deregulation Act, opening the doors for airlines to compete on fares -- and, in consequence, let them go a very long way in optimizing prices.
 
-By 1979, the full economy fare for the BOS-LAX **origin-destination (OD)** market had risen to $476 ($2,133 in 2026, slightly less than a decade earlier when adjusted for inflation). That said, as an airline executive you now have the freedom to reduce that fare or introduce an additional price point targeting the more price-sensitive leisure customer segment. When adding this additional price point, a few critical questions arise:
+By 1979, a year after deregulation, the full economy fare for the BOS-LAX **origin-destination (OD)** market had risen to $476 ($2,133 in 2026, slightly less than a decade earlier when adjusted for inflation). That said, airline executives now have gotten the freedom to introduce an additional price point targeting the more price-sensitive leisure customer segment^[They actually can publish as many fares as they wish, but more about that a bit later down the post]. When adding this additional price point, a few questions arise:
 
 - How much should the new fare cost?
-- How many seats should we sell at that new fare? 
 - How do we prevent the cheaper fare from being purchased by business customers who could have afforded to pay the full fare? 
+- How many seats should we sell at that new fare? 
 
-The first and third questions are fundamentally **pricing** questions. Historically, pricing has been disconnected from revenue management—a separation that remains in many legacy airlines today. The second question, however, is at the heart of revenue management: **inventory control**. Even with perfectly set fares and restrictions, we still need to decide how many seats to allocate to each fare class.
+All these three questions have to do with the prices offered to the customer. However, due to the fact that /systems/
+
+The first two questions are fundamentally **pricing** questions. Historically, pricing has been disconnected from revenue management — a separation that remains in many legacy airlines today. The second question, however, is at the heart of revenue management: **inventory control**. Even with perfectly set fares and restrictions, we still need to decide how many seats to allocate to each fare class.
 
 ## Littlewood's Rule
 Let's say your pricing team decided that the Saver fare should cost $262 round-trip, and that it would only be available until 20 days before departure and require staying at the destination for at least the weekend. These restrictions effectively prevent business customers from **buying down** to the Saver fare. Still, we face the decision of ** how many seats to protect for the full-fare business customers** , given that we expect some to purchase within the last 20 days prior to departure.
