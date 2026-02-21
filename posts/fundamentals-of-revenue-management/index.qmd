@@ -1,6 +1,6 @@
 ---
 title: "Foundations of Revenue Management: From Deregulation to Littlewood's Rule"
-author: "Bazyli Szymaski & Alek Racicot"
+author: "Bazyli Szymański & Alek Racicot"
 date: "2026-02-17"
 description: "Airline deregulation, the two-fare problem, and Littlewood's Rule."
 categories: [Revenue Management, Fundamentals]
