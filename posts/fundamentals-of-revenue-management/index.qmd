@@ -1,6 +1,6 @@
 ---
 title: "Foundations of Revenue Management: From Deregulation to Littlewood's Rule"
-author: "Bazyli Szymanski & Alek Racicot"
+author: "Bazyli Szymaski & Alek Racicot"
 date: "2026-02-17"
 description: "Airline deregulation, the two-fare problem, and Littlewood's Rule."
 categories: [Revenue Management, Fundamentals]
@@ -12,6 +12,8 @@ bibliography: references.bib
 resources:
   - littlewood_sim.html
 ---
+
+This post is the first in the series on fundamentals of Revenue Management, where we introduce key ideas and terminology behind what's inside revenue management systems. 
 
 ## A walk down the deregulation lane
 The history of airline revenue management is often told through the tale of airline industry deregulation. Until the late 1970s, airlines in the US were essentially limited to offering a single fare per cabin (Economy / First class), with prices dictated by the Civil Aeronautics Board. Regardless of the airline, time to departure, or period of travel, in 1969 a customer would pay exactly $296 ($2,624 in 2026 dollars!) for a round-trip economy fare from Boston (BOS) to Los Angeles (LAX). Flying was a luxury for most, and from the perspective of this story—an inefficient way of pricing, where airlines were completely missing out on the more price-sensitive market segment, **leading to lower capacity utilization and load factors**. In 1978, Jimmy Carter signed the Airline Deregulation Act, which opened the doors for airlines to compete on fares.  
