@@ -6,8 +6,11 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Bazyli Szymański &amp; Alek Racicot">
+<meta name="dcterms.date" content="2026-02-21">
+<meta name="description" content="Why A/B tests in revenue management are biased by lead time, and how to correct for it.">
 
-<title>Theory and practice of dynamic pricing – Kernyl</title>
+<title>Paper Discussion: Removing A/B Test Bias in a Marketplace of Expirable Goods – Kernyl</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -20,30 +23,48 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<link href="./favicon.svg" rel="icon" type="image/svg+xml">
-<script src="site_libs/quarto-listing/list.min.js"></script>
-<script src="site_libs/quarto-listing/quarto-listing.js"></script>
-<script src="site_libs/quarto-html/quarto.js" type="module"></script>
-<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-8b4baf804e461d9b72633f0de59a0cac.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-9ebf109a3be8bdd5f6ff8120de8d6dad.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../favicon.svg" rel="icon" type="image/svg+xml">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-8b4baf804e461d9b72633f0de59a0cac.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-9ebf109a3be8bdd5f6ff8120de8d6dad.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -71,35 +92,6 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
-<script>
-
-  window.document.addEventListener("DOMContentLoaded", function (_event) {
-    const listingTargetEl = window.document.querySelector('#listing-listing .list');
-    if (!listingTargetEl) {
-      // No listing discovered, do not attach.
-      return; 
-    }
-
-    const options = {
-      valueNames: ['listing-image','listing-date','listing-title','listing-description','listing-categories',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
-      
-      searchColumns: ["listing-date","listing-title","listing-author","listing-image","listing-description","listing-categories"],
-    };
-
-    window['quarto-listings'] = window['quarto-listings'] || {};
-    window['quarto-listings']['listing-listing'] = new List('listing-listing', options);
-
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  });
-
-  window.addEventListener('hashchange',() => {
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  })
-  </script>
 <script async="" src="https://www.googletagmanager.com/gtag/js?id=G-RCQGEPG5XP"></script>
 
 <script type="text/javascript">
@@ -140,8 +132,8 @@ window.Quarto = {
 };
 </script>
 
-<link rel="stylesheet" href="styles.css">
-<link rel="alternate" type="application/rss+xml" title="Kernyl" href="index.xml" data-external="1"></head>
+<link rel="stylesheet" href="../../styles.css">
+</head>
 
 <body class="nav-fixed quarto-light">
 
@@ -150,7 +142,7 @@ window.Quarto = {
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a class="navbar-brand" href="./index.html">
+    <a class="navbar-brand" href="../../index.html">
     <span class="navbar-title">Kernyl</span>
     </a>
   </div>
@@ -161,11 +153,11 @@ window.Quarto = {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link active" href="./index.html" aria-current="page"> 
+    <a class="nav-link" href="../../index.html"> 
 <span class="menu-text">Posts</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./about.html"> 
+    <a class="nav-link" href="../../about.html"> 
 <span class="menu-text">About</span></a>
   </li>  
 </ul>
@@ -176,7 +168,7 @@ window.Quarto = {
 <span class="menu-text"></span></a>
   </li>  
   <li class="nav-item compact">
-    <a class="nav-link" href="./index.xml"> <i class="bi bi-rss" role="img">
+    <a class="nav-link" href="../../index.xml"> <i class="bi bi-rss" role="img">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -188,25 +180,55 @@ window.Quarto = {
     </nav>
 </header>
 <!-- content -->
-<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
-    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(2)</span></div><div class="category" data-category="RXhwZXJpbWVudGF0aW9u">Experimentation <span class="quarto-category-count">(1)</span></div><div class="category" data-category="RnVuZGFtZW50YWxz">Fundamentals <span class="quarto-category-count">(1)</span></div><div class="category" data-category="UmV2ZW51ZSUyME1hbmFnZW1lbnQ=">Revenue Management <span class="quarto-category-count">(2)</span></div></div></div>
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#its-not-as-simple-as-a-t-test" id="toc-its-not-as-simple-as-a-t-test" class="nav-link active" data-scroll-target="#its-not-as-simple-as-a-t-test">It’s not as simple as a t-test</a>
+  <ul class="collapse">
+  <li><a href="#wait-why-is-my-uplift-metric-trending" id="toc-wait-why-is-my-uplift-metric-trending" class="nav-link" data-scroll-target="#wait-why-is-my-uplift-metric-trending">Wait, why is my uplift metric trending?</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
 <!-- main -->
-<main class="content column-page-left" id="quarto-document-content">
+<main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Theory and practice of dynamic pricing</h1>
+<h1 class="title">Paper Discussion: Removing A/B Test Bias in a Marketplace of Expirable Goods</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">Revenue Management</div>
+    <div class="quarto-category">Experimentation</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Why A/B tests in revenue management are biased by lead time, and how to correct for it.
+  </div>
 </div>
 
 
+<div class="quarto-title-meta">
 
-<div class="quarto-title-meta column-page-left">
-
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Bazyli Szymański &amp; Alek Racicot </p>
+          </div>
+  </div>
     
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">February 21, 2026</p>
+    </div>
+  </div>
   
     
   </div>
@@ -216,73 +238,79 @@ window.Quarto = {
 </header>
 
 
-
-
-
-
-<div class="quarto-listing quarto-listing-container-default" id="listing-listing">
-<div class="list quarto-listing-default">
-<div class="quarto-post image-right" data-index="0" data-categories="UmV2ZW51ZSUyME1hbmFnZW1lbnQlMkNFeHBlcmltZW50YXRpb24=" data-listing-date-sort="1775257200000" data-listing-file-modified-sort="1775418707892" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="11" data-listing-word-count-sort="2193">
-<div class="thumbnail"><a href="./posts/experimentation101/index.html" class="no-external">
-
-<img loading="lazy" src="./posts/experimentation101/thumbnail.jpg" class="thumbnail-image">
-
-</a></div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./posts/experimentation101/index.html" class="no-external">Why Should Airlines Care About Experimentation?</a>
-</h3>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('UmV2ZW51ZSUyME1hbmFnZW1lbnQ='); return false;">Revenue Management</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('RXhwZXJpbWVudGF0aW9u'); return false;">Experimentation</div>
-
+<p>Quickly why I think it’s a cool paper and what we’ll go through.</p>
+<section id="its-not-as-simple-as-a-t-test" class="level2">
+<h2 class="anchored" data-anchor-id="its-not-as-simple-as-a-t-test">It’s not as simple as a t-test</h2>
+<p>A/B tests in revenue management can be quite challenging. In most settings, we are trying to measure a very small signal (e.g.&nbsp;0.5-1%) on a very noisy outcome, and many of our products are subject to capacity constraints, cannibalization risks, long testing horizons, mixed treatment effects (MTE), and a range of other complications that make standard testing procedures insufficient or impractical.</p>
+<p>Capacity constraints are central to revenue management and their considerations result in pricing strategies that can be significantly different from those you would obtain pricing a fully unconstrained product. The purpose of a dynamic pricing system is to maximise the revenue a business can generate from its inventory. In the case of airlines or hotels, this inventory is perishable: a seat flown empty or a room left unfilled represents lost revenue, and the business must manage its inventory to maximise profitability before it expires.</p>
+<p>At any point in time, an RM system prices its inventory to maximise revenue by considering both the expected immediate reward (seats sold now at the current price) and the expected future reward (seats it expects to sell later at a future price). Before diving into the implications this has for our experiments let’s look at this through the lens of our example in <a href="../../posts/fundamentals-of-revenue-management/index.html">Foundations of Revenue Management: From Deregulation to Littlewood’s Rule</a>. If you haven’t read the article, here is a short problem statement:</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
 </div>
-<div class="delink listing-description"><a href="./posts/experimentation101/index.html" class="no-external">
-<p>Experimentation is critical for airlines, but it’s also extremely challenging to do right. Here’s why, and the framework that helps us think about it.</p>
-</a></div>
-</div>
-<div class="metadata">
-<a href="./posts/experimentation101/index.html" class="no-external">
-<div class="listing-date">
-Apr 4, 2026
-</div>
-</a>
+<div class="callout-title-container flex-fill">
+Note
 </div>
 </div>
-<div class="quarto-post image-right" data-index="1" data-categories="UmV2ZW51ZSUyME1hbmFnZW1lbnQlMkNGdW5kYW1lbnRhbHM=" data-listing-date-sort="1771286400000" data-listing-file-modified-sort="1771705550531" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5" data-listing-word-count-sort="913">
-<div class="thumbnail"><a href="./posts/fundamentals-of-revenue-management/index.html" class="no-external">
-
-<img loading="lazy" src="./posts/fundamentals-of-revenue-management/thumbnail.jpg" class="thumbnail-image">
-
-</a></div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./posts/fundamentals-of-revenue-management/index.html" class="no-external">Foundations of Revenue Management: From Deregulation to Littlewood’s Rule</a>
-</h3>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('UmV2ZW51ZSUyME1hbmFnZW1lbnQ='); return false;">Revenue Management</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('RnVuZGFtZW50YWxz'); return false;">Fundamentals</div>
-
+<div class="callout-body-container callout-body">
+<p>Your flight has 200 seats. You sell two fares: a Saver fare at $262 and a Business fare at $476. Saver demand is high enough to fill any seats not protected for business customer who will book in the last 20 days to departure. You expect an uncertain arrival of around 30 business customers</p>
+<p><span class="math display">\[N_{\text{Business Customers}} \sim \text{Poisson}(30)\]</span></p>
 </div>
-<div class="delink listing-description"><a href="./posts/fundamentals-of-revenue-management/index.html" class="no-external">
-<p>Airline deregulation, the two-fare problem, and Littlewood’s Rule.</p>
-</a></div>
 </div>
-<div class="metadata">
-<a href="./posts/fundamentals-of-revenue-management/index.html" class="no-external">
-<div class="listing-date">
-Feb 17, 2026
+<div id="cell-fig-revenue-by-period" class="cell" data-execution_count="1">
+<div class="cell-output cell-output-display">
+<div id="fig-revenue-by-period" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-revenue-by-period-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-revenue-by-period-output-1.png" width="1334" height="475" class="figure-img">
 </div>
-</a>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-revenue-by-period-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Revenue claimed in period 1 can’t be realised in period 2
+</figcaption>
+</figure>
 </div>
 </div>
 </div>
-<div class="listing-no-matching d-none">No matching items</div>
-</div></main> <!-- /main -->
+<p>The figure above shows the expected revenue you would generate in period 1 and period 2 depending on the number of seats you protect. The key insight is simple: <strong>the seats you sell today directly determine what capacity you have left to sell tomorrow</strong>, and therefore what <strong>revenue you can still generate</strong>.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>A sidenote on SUTVA and why we can’t randomise at the booking level
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>This also illustrates why testing RM systems is fundamentally hard. In a standard A/B test, we assume that exposing one customer to a treatment does not affect other customers, which is the SUTVA assumption from the counterfactual framework. In RM, this assumption breaks immediately: every booking changes your remaining capacity, which changes your price, which affects every future customer. This is what we earlier called a mixed treatment effect. Because of this, we cannot randomise at the individual booking level and instead randomise at a higher level, such as the flight or the route, so that the treatment and control groups each have their own independent inventory. Similarly, testing a new pricing engine on a flight with a booking history will also cause issues.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="sutva_violation.png" class="img-fluid figure-img"></p>
+<figcaption>SUTVA violation in RM: a treated customer’s conversion changes capacity, which changes the price seen by the next untreated customer.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<section id="wait-why-is-my-uplift-metric-trending" class="level3">
+<h3 class="anchored" data-anchor-id="wait-why-is-my-uplift-metric-trending">Wait, why is my uplift metric trending?</h3>
+<p>Another way to look at this is that if we made a change to our RM system and tracked the revenue uplift day by day, our metric would be trending. This view is closer to what is presented in the paper <span class="citation" data-cites="le2023price">(<a href="#ref-le2023price" role="doc-biblioref">Le and Deng 2023</a>)</span> and is essentially what the authors leverage to correct for the lead day bias.</p>
+<p>To see this more explicitly, consider the figure above. If we compared a policy of protecting 0 seats against one protecting 30 seats at the end of period 1, we would have generated just over $52k with the first policy and a little under $45k with the second. We might be tempted to conclude that the new policy generated a 17% uplift. But by the end of period 2, the policy protecting 30 seats would have generated an additional $11.9k from business customers, while the policy that protected nothing would have sold out and generated zero. What initially looked like a 17% gain would have turned into roughly an 8% loss.</p>
+<p><span class="citation" data-cites="le2023price">Le and Deng (<a href="#ref-le2023price" role="doc-biblioref">2023</a>)</span> refer to this as fill rate bias. As they put it, “in A/B tests, our revenue metric is recognised on the day of the booking regardless of the check-in date, and it will favour the pricing strategy that sells the night at a faster rate, but not necessarily the one that fetches the highest final price.” Price reductions far from departure look like good ideas early on, only to trend negatively as departure approaches. DSVKJSV</p>
+
+
+
+</section>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-le2023price" class="csl-entry" role="listitem">
+Le, Thu, and Alex Deng. 2023. <span>“The Price Is Right: Removing <span>A/B</span> Test Bias in a Marketplace of Expirable Goods.”</span> In <em>Proceedings of the 32nd ACM International Conference on Information and Knowledge Management</em>. CIKM ’23. <a href="https://doi.org/10.1145/3583780.3615502">https://doi.org/10.1145/3583780.3615502</a>.
+</div>
+</div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";

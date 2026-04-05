@@ -10,1018 +10,222 @@
 <atom:link href="https://www.kernyl.io/index.xml" rel="self" type="application/rss+xml"/>
 <description>Exploring the theory and practice of dynamic pricing</description>
 <generator>quarto-1.8.27</generator>
-<lastBuildDate>Sat, 14 Feb 2026 00:00:00 GMT</lastBuildDate>
+<lastBuildDate>Fri, 03 Apr 2026 23:00:00 GMT</lastBuildDate>
 <item>
-  <title>Building a Simple Pricing Model in Python</title>
+  <title>Why Should Airlines Care About Experimentation?</title>
   <dc:creator>Alek Racicot</dc:creator>
-  <link>https://www.kernyl.io/posts/simple-pricing-model/</link>
+  <link>https://www.kernyl.io/posts/experimentation101/</link>
   <description><![CDATA[ 
 
 
 
 
-<section id="from-theory-to-code" class="level2">
-<h2 class="anchored" data-anchor-id="from-theory-to-code">From theory to code</h2>
-<p>In the previous posts, we covered the intuition behind dynamic pricing and the math of demand curves. Now let’s put it together into a working model.</p>
-<p>The workflow is straightforward:</p>
-<ol type="1">
-<li>Generate (or collect) historical price-demand data</li>
-<li>Estimate a demand curve</li>
-<li>Optimize price to maximize revenue (or profit)</li>
-</ol>
+<section id="the-case-for-experimentation-in-the-airline-industry" class="level2">
+<h2 class="anchored" data-anchor-id="the-case-for-experimentation-in-the-airline-industry">The case for experimentation in the airline industry</h2>
+<p>Airlines are known to be low-margin businesses, yet they generate enormous revenues. Take Delta Air Lines as an example: in FY2025, its total operating revenue was around $63 billion, with approximately $52 billion coming from passenger ticket sales (<a href="https://ir.delta.com/news/news-details/2026/Delta-Air-Lines-Announces-December-Quarter-and-Full-Year-2025-Financial-Results/default.aspx">source</a>).</p>
+<p>This scale is what makes revenue management (RM) so valuable: very small improvements in pricing can translate into large financial gains. For Delta, a <strong>1% improvement</strong> in ticket pricing capabilities would add roughly <strong>$520 million</strong> to their bottom line. As a result, pricing analysts, revenue managers, operations researchers, and countless other professionals spend a considerable amount of time trying to incrementally improve their systems, processes, and ways of working. These improvements are numerous and diversified, touching pricing, product, revenue management systems, overbooking levels, competitor response strategies, and more.</p>
+<p>However, it’s not always easy to know whether a change <strong>actually resulted in a positive outcome</strong>. Consider an airline that decides to raise fares during a fuel crisis. How should they measure whether the change was successful? They could compare against last year, but the market dynamics have changed. There probably wasn’t the same fuel crisis last year, and the competitive landscape and customer expectations may have shifted as well.</p>
+<p>They could track daily revenue and look at what changed before and after the fare increase, but this isn’t ideal either. You can’t simply compare transactions day over day without considering the <strong>future value of remaining capacity</strong>. You might sell a seat right now for $10, but that doesn’t mean you wouldn’t have sold it closer to departure for $300. More fundamentally, when comparing before and after, you always face the question: are market conditions now similar to what they were before the change? In a highly seasonal and dynamic business like the airline industry, this is rarely the case. When you’re trying to measure very small incremental gains (less than 2%), these things matter a lot. It’s just too easy to make the wrong call, and the cost of being slightly wrong is large. This is why proper experimentation is so valuable for airlines.</p>
 </section>
-<section id="step-1-simulating-data" class="level2">
-<h2 class="anchored" data-anchor-id="step-1-simulating-data">Step 1: Simulating data</h2>
-<p>In practice, you’d pull this from your transaction database. Here we’ll simulate realistic-looking data:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> numpy <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> np</span>
-<span id="cb1-2"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> pandas <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> pd</span>
-<span id="cb1-3"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">from</span> scipy.optimize <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> minimize_scalar</span>
-<span id="cb1-4"></span>
-<span id="cb1-5">np.random.seed(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">42</span>)</span>
-<span id="cb1-6"></span>
-<span id="cb1-7"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># True demand parameters (unknown in practice)</span></span>
-<span id="cb1-8">TRUE_A <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">200</span></span>
-<span id="cb1-9">TRUE_B <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="fl" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">3.5</span></span>
-<span id="cb1-10"></span>
-<span id="cb1-11">n_obs <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">500</span></span>
-<span id="cb1-12">prices <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> np.random.uniform(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">10</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">50</span>, n_obs)</span>
-<span id="cb1-13">noise <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> np.random.normal(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">8</span>, n_obs)</span>
-<span id="cb1-14">quantities <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> np.maximum(TRUE_A <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span> TRUE_B <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">*</span> prices <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">+</span> noise, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>)</span>
-<span id="cb1-15"></span>
-<span id="cb1-16">data <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.DataFrame({<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"price"</span>: prices, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"quantity"</span>: quantities})</span>
-<span id="cb1-17">data.head()</span></code></pre></div></div>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>price</th>
-<th>quantity</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>24.87</td>
-<td>117.96</td>
-</tr>
-<tr class="even">
-<td>38.59</td>
-<td>60.43</td>
-</tr>
-<tr class="odd">
-<td>15.60</td>
-<td>152.11</td>
-</tr>
-<tr class="even">
-<td>41.22</td>
-<td>51.87</td>
-</tr>
-<tr class="odd">
-<td>29.75</td>
-<td>96.54</td>
-</tr>
-</tbody>
-</table>
+<section id="online-experimentation-is-not-so-straightforward-in-revenue-management" class="level2">
+<h2 class="anchored" data-anchor-id="online-experimentation-is-not-so-straightforward-in-revenue-management">Online experimentation is not so straightforward in revenue management</h2>
+<p>Airlines are not the first businesses to realize they could benefit greatly from experimentation. As a matter of fact, one of the most widely used statistical tests today is the t-test, which was invented in the early 1900s by William Sealy Gosset for quality control purposes at the Guinness brewery in Dublin (<a href="https://www.scientificamerican.com/article/how-the-guinness-brewery-invented-the-most-important-statistical-method-in/">source</a>).</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="true" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Fun fact: the origin of “Student’s t-test”
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse show">
+<div class="callout-body-container callout-body">
+<p>Gosset published his work under the pseudonym “Student” because Guinness didn’t want to tip off competitors to its research. This is why the technique is still known today as Student’s t-test.</p>
+</div>
+</div>
+</div>
+<p>In modern times, many of the developments in experimentation methodology have come from the tech industry. In a typical setting, a product manager at a platform like Microsoft Bing might want to know how ad revenue is affected by a change in their UI or search ranking. To measure this, they would pick a few metrics of interest (say, ad revenue per user session), then randomly expose some users to the new UI (the <strong>test</strong> group) and others to the old one (the <strong>control</strong> group). In the simplest case, they would run a t-test to compare the average ad revenue between the two groups and adopt the new UI if the result is positive and statistically significant.</p>
+<div id="fig-t-test" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-t-test-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://www.kernyl.io/posts/experimentation101/t-test-example.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-t-test-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Example t-test for an online experiment
+</figcaption>
+</figure>
+</div>
+<p>I’m skipping over a lot of the technicalities here. There are sophisticated statistical models in place at these companies to run experiments faster, in parallel etc. The point I am trying to make is that these experiments are, at first glance, well behaved. It’s easy to randomly assign users to a test or control group. Users don’t affect each other’s outcomes. You can typically collect a large amount of data quickly, which lets you make confident estimates.</p>
+<section id="the-shared-inventory-problem" class="level3">
+<h3 class="anchored" data-anchor-id="the-shared-inventory-problem">The shared inventory problem</h3>
+<p>Now contrast this with our pricing analyst who wants to see if raising fares will help the airline weather a fuel crisis. Unlike the online experiment, the analyst cannot simply show different prices to customers looking at the same itinerary through the same channel. This isn’t a limitation of airline distribution systems. It’s that such a test wouldn’t make sense. In an RM world, the price that one customer sees is affected by the actions of every customer who came before them.</p>
+<p>To see why, consider the two fare ladders below. The control group keeps the airline’s current pricing while the test group doubles the fares at every level. Both structures share the same authorization units (AU), which represent the cumulative number of seats the airline is willing to sell at or below each fare.</p>
+<div id="fig-fare-ladder" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-fare-ladder-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://www.kernyl.io/posts/experimentation101/fare-ladder-experiment.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-fare-ladder-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Fare ladder comparison between control and test groups. Both share the same AU (inventory) limits.
+</figcaption>
+</figure>
+</div>
+<p>Now imagine you want to compare these two structures on the same flight. As customers visit the booking site, you flip a coin: heads, they see the control fares; tails, the test fares. The problem is that both groups share the same seat inventory.</p>
+<p>Say that after some time, 42 customers who saw the control fares and 18 who saw the test fares have purchased seats, filling all 60 seats available at the lowest price tier. The next fare up is now $500 under the control structure and $1,000 under the test structure. A new customer assigned to the test group sees $1,000, but <strong>that’s not the price they would have seen if all prior customers had also been on the test fares</strong>, because the inventory would have been consumed differently. Similarly, control customers near the end likely enjoyed lower prices than they would have if the airline had been running only the control fares all along, because some customers who saw the test fares and decide not to book would like have made a different choice had they seen the control fares.</p>
+<p>In short, control and test customers affect each other through the shared inventory, hence this test is biased! This means that the randomization strategy needs to be done at a more aggregate level, for example by assigning entire flights to either the test or control group. This effectively reduces the sample size for airlines, which makes it harder to detect small differences in performance. It also means that the test and control groups are more likely to differ in their characteristics, which can bias results if not properly accounted for.</p>
 </section>
-<section id="step-2-estimating-the-demand-curve" class="level2">
-<h2 class="anchored" data-anchor-id="step-2-estimating-the-demand-curve">Step 2: Estimating the demand curve</h2>
-<p>A simple linear regression gives us <img src="https://latex.codecogs.com/png.latex?%5Chat%7Ba%7D"> and <img src="https://latex.codecogs.com/png.latex?%5Chat%7Bb%7D">:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">from</span> sklearn.linear_model <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> LinearRegression</span>
-<span id="cb2-2"></span>
-<span id="cb2-3">model <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> LinearRegression()</span>
-<span id="cb2-4">model.fit(data[[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"price"</span>]], data[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"quantity"</span>])</span>
-<span id="cb2-5"></span>
-<span id="cb2-6">a_hat <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> model.intercept_</span>
-<span id="cb2-7">b_hat <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span>model.coef_[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>]  <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># negate because Q = a - b*p</span></span>
-<span id="cb2-8"></span>
-<span id="cb2-9"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f"Estimated demand: Q = </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>a_hat<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:.1f}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;"> - </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>b_hat<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:.2f}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;"> * p"</span>)</span>
-<span id="cb2-10"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f"True demand:      Q = </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>TRUE_A<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;"> - </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>TRUE_B<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;"> * p"</span>)</span></code></pre></div></div>
-<p>With 500 observations and moderate noise, the estimates should be close to the true values.</p>
+<section id="slow-observation-collection" class="level3">
+<h3 class="anchored" data-anchor-id="slow-observation-collection">Slow observation collection</h3>
+<p>Another critical difference from the online testing world stems from the capacity constraint. If you compare the revenue of two flights departing in July under the control and test fares, measuring revenue up through March doesn’t tell you much about total revenue at departure. Cheaper fares tend to sell faster, which can mean more revenue early on but fewer seats left to sell closer to departure when fares are typically higher. To adequately compare the two pricing policies, you need to <strong>either wait until the departure of the flight</strong> to collect the observation or use a prediction to <strong>estimate the future value of remaining inventory</strong>.</p>
+<p>Both options introduce challenges: waiting until departure means that you can’t iterate quickly on your experiments, while using predictions introduces model risk and uncertainty into your estimates.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>This is far from an exhaustive list of challenges airlines face when running experiments on their RM platforms. But there’s little value in listing every potential issue here. Instead, let’s look at the principles supporting experimentation and discuss some common pitfalls and strategies adopted in revenue management.</p>
+</div>
+</div>
 </section>
-<section id="step-3-optimizing-price" class="level2">
-<h2 class="anchored" data-anchor-id="step-3-optimizing-price">Step 3: Optimizing price</h2>
-<p>Given our estimated demand curve, the revenue function is:</p>
-<p><img src="https://latex.codecogs.com/png.latex?%0AR(p)%20=%20p%20%5Ccdot%20%5Chat%7BQ%7D(p)%20=%20p%20%5Ccdot%20(%5Chat%7Ba%7D%20-%20%5Chat%7Bb%7D%20%5Ccdot%20p)%0A"></p>
-<p>We can solve this analytically or numerically:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># Analytical solution</span></span>
-<span id="cb3-2">p_star_analytical <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> a_hat <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">/</span> (<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span> <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">*</span> b_hat)</span>
-<span id="cb3-3"></span>
-<span id="cb3-4"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># Numerical (useful for more complex demand curves)</span></span>
-<span id="cb3-5">result <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> minimize_scalar(</span>
-<span id="cb3-6">    <span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">lambda</span> p: <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span>(p <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">*</span> (a_hat <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span> b_hat <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">*</span> p)),  <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># negative because we minimize</span></span>
-<span id="cb3-7">    bounds<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>, a_hat <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">/</span> b_hat),</span>
-<span id="cb3-8">    method<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"bounded"</span>,</span>
-<span id="cb3-9">)</span>
-<span id="cb3-10">p_star_numerical <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> result.x</span>
-<span id="cb3-11"></span>
-<span id="cb3-12"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f"Optimal price (analytical): $</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>p_star_analytical<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:.2f}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span>)</span>
-<span id="cb3-13"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f"Optimal price (numerical):  $</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>p_star_numerical<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:.2f}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span>)</span>
-<span id="cb3-14"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f"Expected revenue:           $</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>p_star_analytical <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">*</span> (a_hat <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span> b_hat <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">*</span> p_star_analytical)<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:.2f}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span>)</span></code></pre></div></div>
 </section>
-<section id="adding-cost-structure" class="level2">
-<h2 class="anchored" data-anchor-id="adding-cost-structure">Adding cost structure</h2>
-<p>Revenue maximization ignores costs. If we have a per-unit cost <img src="https://latex.codecogs.com/png.latex?c">, we want to maximize <strong>profit</strong>:</p>
-<p><img src="https://latex.codecogs.com/png.latex?%0A%5CPi(p)%20=%20(p%20-%20c)%20%5Ccdot%20(%5Chat%7Ba%7D%20-%20%5Chat%7Bb%7D%20%5Ccdot%20p)%0A"></p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1">unit_cost <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">12</span>  <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># $ per unit</span></span>
-<span id="cb4-2"></span>
-<span id="cb4-3">p_star_profit <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> (a_hat <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">+</span> b_hat <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">*</span> unit_cost) <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">/</span> (<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span> <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">*</span> b_hat)</span>
-<span id="cb4-4">expected_profit <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> (p_star_profit <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span> unit_cost) <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">*</span> (a_hat <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span> b_hat <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">*</span> p_star_profit)</span>
-<span id="cb4-5"></span>
-<span id="cb4-6"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f"Profit-maximizing price: $</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>p_star_profit<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:.2f}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span>)</span>
-<span id="cb4-7"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f"Expected profit:         $</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>expected_profit<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:.2f}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span>)</span></code></pre></div></div>
-<p>The profit-maximizing price is always higher than the revenue-maximizing price (assuming positive costs). This makes intuitive sense — when you account for costs, you want to sell fewer units at a higher margin.</p>
+<section id="the-potential-outcomes-framework" class="level2">
+<h2 class="anchored" data-anchor-id="the-potential-outcomes-framework">The Potential Outcomes Framework</h2>
+<p>The core idea of the potential outcomes framework is to reframe the problem of estimating a treatment effect as a missing data problem <span class="citation" data-cites="hernan2020">(Hernán and Robins 2020)</span>. In an ideal world, we could take the same unit (in our case, a specific flight) and expose it to different treatments (pricing strategies) in parallel universes. Any difference in the results (say, total passenger revenue) would necessarily be caused by the change in pricing, since everything else stayed the same across universes.</p>
+<p>Obviously, generating alternative universes is not possible. So statisticians and econometricians use mathematical models and randomization to approximate that ideal scenario. Below, we’ll walk through the key assumptions of the potential outcomes framework and what they mean for experimentation in revenue management.</p>
+<p>Throughout this section, we’ll use the terms <strong>test</strong> (the group receiving the new treatment) and <strong>control</strong> (the group receiving the baseline or existing treatment) consistently.</p>
+<section id="sutva-stable-unit-treatment-value-assumption" class="level3">
+<h3 class="anchored" data-anchor-id="sutva-stable-unit-treatment-value-assumption">SUTVA (Stable Unit Treatment Value Assumption)</h3>
+<p>SUTVA can be broken down into two requirements:</p>
+<section id="no-interference" class="level4">
+<h4 class="anchored" data-anchor-id="no-interference">1. No interference</h4>
+<p>The first is that one <strong>unit’s outcome under a given treatment does not depend on other units’ treatment assignments</strong> <span class="citation" data-cites="hernan2020">(Hernán and Robins 2020)</span>. In RM, this shows up most clearly through capacity: every booking changes your available inventory, which changes your pricing, which affects every future customer. This means randomization needs to happen at a more aggregate level (for example, the flight level) rather than the individual customer level.</p>
+<p>But even at the flight level, interference can be an issue. If two flights from London to New York on the same day are assigned to different treatments, passengers may substitute between them. This can also happen across markets: lowering fares substantially on one route risks cannibalizing demand from substitutable flights. RM professionals typically try to separate and cluster their test and control units so that there is as little substitution and interference as possible between them.</p>
 </section>
-<section id="adding-inventory-constraints" class="level2">
-<h2 class="anchored" data-anchor-id="adding-inventory-constraints">Adding inventory constraints</h2>
-<p>What if you have limited inventory? You need to ensure <img src="https://latex.codecogs.com/png.latex?Q(p)%20%5Cleq%20S"> where <img src="https://latex.codecogs.com/png.latex?S"> is your stock:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1">inventory <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">80</span></span>
-<span id="cb5-2"></span>
-<span id="cb5-3"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># Minimum price to not exceed inventory</span></span>
-<span id="cb5-4">p_min_inventory <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> (a_hat <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span> inventory) <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">/</span> b_hat</span>
-<span id="cb5-5"></span>
-<span id="cb5-6"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># Constrained optimal price</span></span>
-<span id="cb5-7">p_star_constrained <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">max</span>(p_star_profit, p_min_inventory)</span>
-<span id="cb5-8"></span>
-<span id="cb5-9"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f"Unconstrained optimal:  $</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>p_star_profit<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:.2f}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span>)</span>
-<span id="cb5-10"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f"Min price for inventory: $</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>p_min_inventory<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:.2f}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span>)</span>
-<span id="cb5-11"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f"Constrained optimal:    $</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>p_star_constrained<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:.2f}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span>)</span></code></pre></div></div>
+<section id="no-hidden-treatment-variations" class="level4">
+<h4 class="anchored" data-anchor-id="no-hidden-treatment-variations">2. No hidden treatment variations</h4>
+<p>The second requirement is that there is only one version of each treatment, meaning every unit assigned to a given treatment receives the same treatment. This is usually less of a concern, but it can become problematic when the treatment is contextual. For example, say you want to increase overbooking thresholds for flights with very high yield. A flight might qualify for that increase either 30 days or 10 days before departure. The “dosage” of the treatment differs because some flights have more time to absorb its effects. If we don’t account for the fact that the “dosage” of the treatment varies across units, we end up with an average treatment effect that represents this mixture of different versions of the treatment, which can be missleading and hard to interpret.</p>
 </section>
-<section id="putting-it-all-together" class="level2">
-<h2 class="anchored" data-anchor-id="putting-it-all-together">Putting it all together</h2>
-<p>Here’s a clean function that wraps the full pipeline:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">def</span> optimize_price(</span>
-<span id="cb6-2">    data: pd.DataFrame,</span>
-<span id="cb6-3">    unit_cost: <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">float</span> <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>,</span>
-<span id="cb6-4">    inventory: <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">float</span> <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|</span> <span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">None</span> <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">None</span>,</span>
-<span id="cb6-5">    price_col: <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">str</span> <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"price"</span>,</span>
-<span id="cb6-6">    quantity_col: <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">str</span> <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"quantity"</span>,</span>
-<span id="cb6-7">) <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-&gt;</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">dict</span>:</span>
-<span id="cb6-8">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">"""Estimate demand and find optimal price."""</span></span>
-<span id="cb6-9">    model <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> LinearRegression()</span>
-<span id="cb6-10">    model.fit(data[[price_col]], data[quantity_col])</span>
-<span id="cb6-11"></span>
-<span id="cb6-12">    a <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> model.intercept_</span>
-<span id="cb6-13">    b <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span>model.coef_[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>]</span>
-<span id="cb6-14"></span>
-<span id="cb6-15">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># Profit-maximizing price</span></span>
-<span id="cb6-16">    p_star <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> (a <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">+</span> b <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">*</span> unit_cost) <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">/</span> (<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span> <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">*</span> b)</span>
-<span id="cb6-17"></span>
-<span id="cb6-18">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># Apply inventory constraint</span></span>
-<span id="cb6-19">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">if</span> inventory <span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">is</span> <span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">not</span> <span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">None</span>:</span>
-<span id="cb6-20">        p_min <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> (a <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span> inventory) <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">/</span> b</span>
-<span id="cb6-21">        p_star <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">max</span>(p_star, p_min)</span>
-<span id="cb6-22"></span>
-<span id="cb6-23">    q_star <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> a <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span> b <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">*</span> p_star</span>
-<span id="cb6-24">    revenue <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> p_star <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">*</span> q_star</span>
-<span id="cb6-25">    profit <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> (p_star <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span> unit_cost) <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">*</span> q_star</span>
-<span id="cb6-26"></span>
-<span id="cb6-27">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">return</span> {</span>
-<span id="cb6-28">        <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"optimal_price"</span>: <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">round</span>(p_star, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span>),</span>
-<span id="cb6-29">        <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"expected_quantity"</span>: <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">round</span>(q_star, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>),</span>
-<span id="cb6-30">        <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"expected_revenue"</span>: <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">round</span>(revenue, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span>),</span>
-<span id="cb6-31">        <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"expected_profit"</span>: <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">round</span>(profit, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span>),</span>
-<span id="cb6-32">        <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"demand_intercept"</span>: <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">round</span>(a, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span>),</span>
-<span id="cb6-33">        <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"demand_slope"</span>: <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">round</span>(b, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">4</span>),</span>
-<span id="cb6-34">    }</span>
-<span id="cb6-35"></span>
-<span id="cb6-36">result <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> optimize_price(data, unit_cost<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">12</span>, inventory<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">80</span>)</span>
-<span id="cb6-37"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">for</span> k, v <span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">in</span> result.items():</span>
-<span id="cb6-38">    <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f"  </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>k<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">: </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>v<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span>)</span></code></pre></div></div>
 </section>
-<section id="limitations" class="level2">
-<h2 class="anchored" data-anchor-id="limitations">Limitations</h2>
-<p>This model is intentionally simple. Real-world pricing systems need to handle:</p>
-<ul>
-<li><strong>Non-linear demand</strong> — the linear assumption breaks at extreme prices</li>
-<li><strong>Competitor pricing</strong> — your demand depends on what others charge</li>
-<li><strong>Time dynamics</strong> — demand patterns shift over hours, days, and seasons</li>
-<li><strong>Multiple products</strong> — pricing one product affects demand for others</li>
-</ul>
-<p>We’ll tackle these in upcoming posts. But even this simple model captures the core logic: estimate demand, define an objective, optimize.</p>
+<section id="exchangeability" class="level3">
+<h3 class="anchored" data-anchor-id="exchangeability">Exchangeability</h3>
+<p>This is sometimes called the “randomization” assumption. It means that the group assigned to the test would have had the same average outcome as the group assigned to control, had they been swapped. In other words, <strong>treatment assignment is independent of potential outcomes</strong>. This breaks down when there is sampling bias in the randomization strategy, or when the randomization simply isn’t effective at balancing the two groups.</p>
+<p>For instance, suppose you create clusters of markets (domestic, transatlantic, Pacific, etc.) and randomly assign each cluster to a different RM system. There is no guarantee that the control and test groups would have behaved the same way under the same system. Pre-existing differences between the groups could drive the observed results. In practice, this can be examined before the test by comparing metrics of interest (load factor, yield, share of business customers, etc.) and confirming that the two groups look comparable after randomization <strong>(this is called covariate balance)</strong>.</p>
+</section>
+<section id="positivity" class="level3">
+<h3 class="anchored" data-anchor-id="positivity">Positivity</h3>
+<p>Positivity assumes that every type of unit in your experiment has a non-zero probability of receiving every version of the treatment. This matters because it limits how far you can generalize your results. For example, if you test new ancillary bundles only on your direct channel and never expose customers booking through a GDS, then your results only apply to the population of direct-channel customers. The same issue arises at the flight level when certain conditions must be met (for instance, a low booked load factor or high yield) for the treatment to activate.</p>
+</section>
+<section id="consistency" class="level3">
+<h3 class="anchored" data-anchor-id="consistency">Consistency</h3>
+<p>Consistency states that the outcome we observe is truly the result of the assigned treatment. Without it, we can’t estimate a counterfactual, because even our factual observation (the result following treatment assignment) is unreliable. This can be a problem when it’s hard to pin down what the treatment actually was. For example, if your test group experienced both the test and control prices during the booking window (say, because the treatment was switched on partway through), then the observed outcome is not the true potential outcome under the test treatment. This is known as mixed treatment bias.</p>
+</section>
+</section>
+<section id="wrapping-up" class="level2">
+<h2 class="anchored" data-anchor-id="wrapping-up">Wrapping up</h2>
+<p>Understanding these assumptions provides a complete toolkit for experiment design. It also highlights why A/B tests require a lot of business judgment and domain expertise to be done right.</p>
+<p>I promised myself that I would avoid getting technical in this post and that I would keep it short, but I can’t end without touching on the <strong>Overall Evaluation Criteria (OEC)</strong>. A/B tests answer the question you ask, not necessarily the one you thought you asked. It’s super important to always make sure that that your KPI’s and metrics align with your true business objectives. For example, a test for a new pricier bundle might drive a 15% spike in ancillary revenue, but if that increase comes at the expense of ticket sales, the airline could be worse offoverall. If you aren’t measuring total revenue impact, you risk adopting changes that optimize one metric while hurting the business as a whole.</p>
+<p>We are putting together an <strong>experiment checklist</strong> specifically for RM and will publish it on this website in the coming weeks.</p>
+
 
 
 </section>
 
- ]]></description>
-  <category>python</category>
-  <category>modeling</category>
-  <category>tutorial</category>
-  <guid>https://www.kernyl.io/posts/simple-pricing-model/</guid>
-  <pubDate>Sat, 14 Feb 2026 00:00:00 GMT</pubDate>
-  <media:content url="https://www.kernyl.io/posts/simple-pricing-model/thumbnail.jpg" medium="image" type="image/jpeg"/>
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0">
+<div id="ref-hernan2020" class="csl-entry">
+Hernán, Miguel A., and James M. Robins. 2020. <em>Causal Inference: What If</em>. Boca Raton: Chapman &amp; Hall/CRC. <a href="https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/">https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/</a>.
+</div>
+</div></section></div> ]]></description>
+  <category>Revenue Management</category>
+  <category>Experimentation</category>
+  <guid>https://www.kernyl.io/posts/experimentation101/</guid>
+  <pubDate>Fri, 03 Apr 2026 23:00:00 GMT</pubDate>
+  <media:content url="https://www.kernyl.io/posts/experimentation101/thumbnail.jpg" medium="image" type="image/jpeg"/>
 </item>
 <item>
-  <title>Demand Curves and Price Elasticity</title>
-  <dc:creator>Alek Racicot</dc:creator>
-  <link>https://www.kernyl.io/posts/demand-curves-elasticity/</link>
+  <title>Foundations of Revenue Management: From Deregulation to Littlewood’s Rule</title>
+  <dc:creator>Bazyli Szymański &amp; Alek Racicot</dc:creator>
+  <link>https://www.kernyl.io/posts/fundamentals-of-revenue-management/</link>
   <description><![CDATA[ 
 
 
 
 
-<section id="price-goes-up-demand-goes-down" class="level2">
-<h2 class="anchored" data-anchor-id="price-goes-up-demand-goes-down">Price goes up, demand goes down</h2>
-<p>The most fundamental relationship in pricing is the <strong>demand curve</strong>: as price increases, the quantity demanded typically decreases. This isn’t a law of physics — there are exceptions — but it holds remarkably well across most markets.</p>
-<p>Formally, we can write a demand function:</p>
-<p><img src="https://latex.codecogs.com/png.latex?%0AQ(p)%20=%20a%20-%20b%20%5Ccdot%20p%0A"></p>
-<p>where <img src="https://latex.codecogs.com/png.latex?Q"> is quantity demanded, <img src="https://latex.codecogs.com/png.latex?p"> is price, and <img src="https://latex.codecogs.com/png.latex?a">, <img src="https://latex.codecogs.com/png.latex?b"> are parameters that depend on the market. This linear form is a simplification, but it’s a useful starting point.</p>
-</section>
-<section id="price-elasticity-of-demand" class="level2">
-<h2 class="anchored" data-anchor-id="price-elasticity-of-demand">Price elasticity of demand</h2>
-<p>Not all products respond to price changes the same way. A 10% increase in the price of salt barely changes how much people buy. A 10% increase in the price of a luxury handbag might cut demand significantly.</p>
-<p><strong>Price elasticity of demand</strong> captures this:</p>
-<p><img src="https://latex.codecogs.com/png.latex?%0A%5Cepsilon%20=%20%5Cfrac%7B%5C%25%20%5CDelta%20Q%7D%7B%5C%25%20%5CDelta%20p%7D%20=%20%5Cfrac%7BdQ%7D%7Bdp%7D%20%5Ccdot%20%5Cfrac%7Bp%7D%7BQ%7D%0A"></p>
+<p>This post is the first in the series on fundamentals of Revenue Management, where we introduce key ideas and terminology behind what’s inside revenue management systems.</p>
+<section id="a-walk-down-the-deregulation-lane" class="level2">
+<h2 class="anchored" data-anchor-id="a-walk-down-the-deregulation-lane">A walk down the deregulation lane</h2>
+<p>The history of airline revenue management is often told through the tale of airline industry deregulation. Until the late 1970s, airlines in the US were essentially limited to offering a single fare per cabin (Economy / First class), with prices dictated by the Civil Aeronautics Board. Regardless of the airline, time to departure, or period of travel, in 1969 a customer would pay exactly $296 ($2,624 in 2026 dollars!) for a round-trip economy fare from Boston (BOS) to Los Angeles (LAX). Flying was a luxury for most, and from the perspective of this story—an inefficient way of pricing, where airlines were completely missing out on the more price-sensitive market segment, <strong>leading to lower capacity utilization and load factors</strong>. In 1978, Jimmy Carter signed the Airline Deregulation Act, which opened the doors for airlines to compete on fares.</p>
+<p>By 1979, the full economy fare for the BOS-LAX <strong>origin-destination (OD)</strong> market had risen to $476 ($2,133 in 2026, slightly less than a decade earlier when adjusted for inflation). That said, as an airline executive you now have the freedom to reduce that fare or introduce an additional price point targeting the more price-sensitive leisure customer segment. When adding this additional price point, a few critical questions arise:</p>
 <ul>
-<li><img src="https://latex.codecogs.com/png.latex?%7C%5Cepsilon%7C%20%3E%201">: <strong>elastic</strong> — demand is sensitive to price (luxury goods, entertainment)</li>
-<li><img src="https://latex.codecogs.com/png.latex?%7C%5Cepsilon%7C%20%3C%201">: <strong>inelastic</strong> — demand is insensitive to price (necessities, utilities)</li>
-<li><img src="https://latex.codecogs.com/png.latex?%7C%5Cepsilon%7C%20=%201">: <strong>unit elastic</strong> — a special case where revenue is maximized</li>
+<li>How much should the new fare cost?</li>
+<li>How many seats should we sell at that new fare?</li>
+<li>How do we prevent the cheaper fare from being purchased by business customers who could have afforded to pay the full fare?</li>
 </ul>
+<p>The first and third questions are fundamentally <strong>pricing</strong> questions. Historically, pricing has been disconnected from revenue management—a separation that remains in many legacy airlines today. The second question, however, is at the heart of revenue management: <strong>inventory control</strong>. Even with perfectly set fares and restrictions, we still need to decide how many seats to allocate to each fare class.</p>
 </section>
-<section id="computing-elasticity-in-python" class="level2">
-<h2 class="anchored" data-anchor-id="computing-elasticity-in-python">Computing elasticity in Python</h2>
-<p>Let’s make this concrete with a quick example:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> numpy <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> np</span>
-<span id="cb1-2"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> matplotlib.pyplot <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> plt</span>
-<span id="cb1-3"></span>
-<span id="cb1-4"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># Linear demand: Q = 100 - 2p</span></span>
-<span id="cb1-5">a, b <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">100</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span></span>
-<span id="cb1-6">prices <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> np.linspace(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">45</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">200</span>)</span>
-<span id="cb1-7">demand <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> a <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span> b <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">*</span> prices</span>
-<span id="cb1-8"></span>
-<span id="cb1-9"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># Elasticity at each price point</span></span>
-<span id="cb1-10">elasticity <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span>b <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">*</span> prices <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">/</span> demand</span>
-<span id="cb1-11"></span>
-<span id="cb1-12">fig, (ax1, ax2) <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> plt.subplots(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span>, figsize<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">10</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">4</span>))</span>
-<span id="cb1-13"></span>
-<span id="cb1-14">ax1.plot(prices, demand, color<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"#4a6fa5"</span>, linewidth<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span>)</span>
-<span id="cb1-15">ax1.set_xlabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Price ($)"</span>)</span>
-<span id="cb1-16">ax1.set_ylabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Quantity demanded"</span>)</span>
-<span id="cb1-17">ax1.set_title(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Demand Curve"</span>)</span>
-<span id="cb1-18"></span>
-<span id="cb1-19">ax2.plot(prices, np.<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">abs</span>(elasticity), color<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"#c44e52"</span>, linewidth<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span>)</span>
-<span id="cb1-20">ax2.axhline(y<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>, color<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"#999"</span>, linestyle<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"--"</span>, alpha<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0.7</span>)</span>
-<span id="cb1-21">ax2.set_xlabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Price ($)"</span>)</span>
-<span id="cb1-22">ax2.set_ylabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"|Elasticity|"</span>)</span>
-<span id="cb1-23">ax2.set_title(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Price Elasticity"</span>)</span>
-<span id="cb1-24"></span>
-<span id="cb1-25">plt.tight_layout()</span>
-<span id="cb1-26">plt.show()</span></code></pre></div></div>
+<section id="littlewoods-rule" class="level2">
+<h2 class="anchored" data-anchor-id="littlewoods-rule">Littlewood’s Rule</h2>
+<p>Let’s say your pricing team decided that the Saver fare should cost $262 round-trip, and that it would only be available until 20 days before departure and require staying at the destination for at least the weekend. These restrictions effectively prevent business customers from <strong>buying down</strong> to the Saver fare. Still, we face the decision of ** how many seats to protect for the full-fare business customers** , given that we expect some to purchase within the last 20 days prior to departure.</p>
+<p>If we knew exactly how many business customers would arrive, the problem would be trivial. Given that the business fare is more expensive, if we know 15 business customers will arrive close to flight departure, we should protect exactly 15 seats for those customers. Similarly, if business customers always booked before leisure customers, we could simply sell the full fare until demand is exhausted, then sell remaining seats at the saver fare.</p>
+<p>Unfortunately, airlines face <strong>uncertain demand</strong> and have good reasons to beleive that high value customers, such as business travelers, typically book closer to departure.</p>
+<p>Luckily for us in this toy example we can leverage seminal work in airline revenue management and appy what is now know as Littlewood’s Rule <span class="citation" data-cites="littlewood1972">(Littlewood 1972)</span> to find how many seats we should protect for our business customers. The core idea it to protect seats for business customers until the expected marginal revenue from protecting an additional seat drops below the guaranteed revenue from selling the seat at the saver fare.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>The Key Insight
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>We protect seats for business customers until the expected marginal revenue from protecting an additional seat drops below the guaranteed revenue from selling the seat at the saver fare.</p>
+</div>
+</div>
+<p><strong>Littlewood’s Rule</strong> states: Protect seat <img src="https://latex.codecogs.com/png.latex?n"> if and only if:</p>
+<p><img src="https://latex.codecogs.com/png.latex?P(%5Ctext%7BBusiness%20demand%7D%20%5Cgeq%20n)%20%5Ctimes%20%5Ctext%7BBusiness%20Fare%7D%20%3E%20%5Ctext%7BSaver%20Fare%7D"></p>
+<p>Where <img src="https://latex.codecogs.com/png.latex?n"> is the number of seats we’re considering protecting. Rearranging:</p>
+<p><img src="https://latex.codecogs.com/png.latex?P(%5Ctext%7BBusiness%20demand%7D%20%5Cgeq%20n)%20%3E%20%5Cfrac%7B%5Ctext%7BSaver%20Fare%7D%7D%7B%5Ctext%7BBusiness%20Fare%7D%7D"></p>
+<p>In our example with a $262 saver fare and $476 business fare:</p>
+<p><img src="https://latex.codecogs.com/png.latex?P(%5Ctext%7BBusiness%20demand%7D%20%5Cgeq%20n)%20%3E%20%5Cfrac%7B262%7D%7B476%7D%20=%200.55"></p>
+<p>This means: protect seat <img src="https://latex.codecogs.com/png.latex?n"> if there’s more than a 55% chance that business demand will be high enough to sell it.</p>
+<section id="interactive-simulation" class="level3">
+<h3 class="anchored" data-anchor-id="interactive-simulation">Interactive Simulation</h3>
+<p>Now it’s your turn. The chart below shows the expected marginal value of protecting each additional seat for business class — that is, <img src="https://latex.codecogs.com/png.latex?P(%5Ctext%7BBusiness%20demand%7D%20%5Cgeq%20n)%20%5Ctimes%20%5C$476">. The dashed line marks the saver fare. Use the slider to choose how many seats you’d protect, and see how your decision affects expected revenue.</p>
+<iframe src="littlewood_rule_sim.html" width="100%" height="750px" style="border:none;"></iframe>
 </section>
-<section id="why-elasticity-matters-for-pricing" class="level2">
-<h2 class="anchored" data-anchor-id="why-elasticity-matters-for-pricing">Why elasticity matters for pricing</h2>
-<p>If demand is <strong>elastic</strong>, lowering your price increases revenue — you sell enough additional units to more than offset the lower price. If demand is <strong>inelastic</strong>, <em>raising</em> your price increases revenue — you lose few customers.</p>
-<p>The revenue-maximizing price occurs at unit elasticity (<img src="https://latex.codecogs.com/png.latex?%7C%5Cepsilon%7C%20=%201">). For our linear demand curve:</p>
-<p><img src="https://latex.codecogs.com/png.latex?%0Ap%5E*%20=%20%5Cfrac%7Ba%7D%7B2b%7D%0A"></p>
-<p>With <img src="https://latex.codecogs.com/png.latex?a%20=%20100"> and <img src="https://latex.codecogs.com/png.latex?b%20=%202">, the optimal price is $25.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># Revenue = p * Q = p * (a - b*p)</span></span>
-<span id="cb2-2">revenue <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> prices <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">*</span> demand</span>
-<span id="cb2-3">optimal_price <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> a <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">/</span> (<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span> <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">*</span> b)</span>
-<span id="cb2-4">optimal_revenue <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> optimal_price <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">*</span> (a <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span> b <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">*</span> optimal_price)</span>
-<span id="cb2-5"></span>
-<span id="cb2-6">plt.figure(figsize<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">6</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">4</span>))</span>
-<span id="cb2-7">plt.plot(prices, revenue, color<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"#4a6fa5"</span>, linewidth<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span>)</span>
-<span id="cb2-8">plt.axvline(x<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>optimal_price, color<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"#c44e52"</span>, linestyle<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"--"</span>, alpha<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0.7</span>)</span>
-<span id="cb2-9">plt.annotate(</span>
-<span id="cb2-10">    <span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f"p* = $</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>optimal_price<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:.0f}</span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">\n</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">R* = $</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>optimal_revenue<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:.0f}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span>,</span>
-<span id="cb2-11">    xy<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>(optimal_price, optimal_revenue),</span>
-<span id="cb2-12">    xytext<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>(optimal_price <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5</span>, optimal_revenue <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">100</span>),</span>
-<span id="cb2-13">    arrowprops<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">dict</span>(arrowstyle<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"-&gt;"</span>, color<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"#666"</span>),</span>
-<span id="cb2-14">    fontsize<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">10</span>,</span>
-<span id="cb2-15">)</span>
-<span id="cb2-16">plt.xlabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Price ($)"</span>)</span>
-<span id="cb2-17">plt.ylabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Revenue ($)"</span>)</span>
-<span id="cb2-18">plt.title(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Revenue vs. Price"</span>)</span>
-<span id="cb2-19">plt.tight_layout()</span>
-<span id="cb2-20">plt.show()</span></code></pre></div></div>
-</section>
-<section id="beyond-linear-demand" class="level2">
-<h2 class="anchored" data-anchor-id="beyond-linear-demand">Beyond linear demand</h2>
-<p>Real-world demand curves are rarely linear. Common alternatives include:</p>
-<ul>
-<li><strong>Log-linear</strong>: <img src="https://latex.codecogs.com/png.latex?%5Cln%20Q%20=%20a%20-%20b%20%5Cln%20p"> (constant elasticity)</li>
-<li><strong>Exponential</strong>: <img src="https://latex.codecogs.com/png.latex?Q%20=%20a%20%5Ccdot%20e%5E%7B-bp%7D"></li>
-<li><strong>Logistic</strong>: useful when demand saturates at high or low prices</li>
-</ul>
-<p>The choice of functional form matters — it determines how your model extrapolates outside the observed data range.</p>
-</section>
-<section id="next-up" class="level2">
-<h2 class="anchored" data-anchor-id="next-up">Next up</h2>
-<p>In the next post, we’ll use these ideas to build a complete pricing optimization model: estimate a demand curve from data, find the optimal price, and handle constraints like inventory limits.</p>
-
-
-</section>
-
- ]]></description>
-  <category>fundamentals</category>
-  <category>economics</category>
-  <category>math</category>
-  <guid>https://www.kernyl.io/posts/demand-curves-elasticity/</guid>
-  <pubDate>Sun, 01 Feb 2026 00:00:00 GMT</pubDate>
-  <media:content url="https://www.kernyl.io/posts/demand-curves-elasticity/thumbnail.jpg" medium="image" type="image/jpeg"/>
-</item>
-<item>
-  <title>What Is Dynamic Pricing?</title>
-  <dc:creator>Alek Racicot</dc:creator>
-  <link>https://www.kernyl.io/posts/what-is-dynamic-pricing/</link>
-  <description><![CDATA[ 
-
-
-
-
-<section id="the-price-tag-is-a-suggestion" class="level2">
-<h2 class="anchored" data-anchor-id="the-price-tag-is-a-suggestion">The price tag is a suggestion</h2>
-<p>Walk into a grocery store and everything has a fixed price. A can of beans costs $1.29 today, tomorrow, and next week. But open a ride-sharing app during rush hour and you’ll notice something different: the price <em>changes</em>. It responds to demand, supply, time, and context.</p>
-<p>This is <strong>dynamic pricing</strong> — the practice of adjusting prices in real time (or near real time) based on market conditions.</p>
-</section>
-<section id="where-you-already-see-it" class="level2">
-<h2 class="anchored" data-anchor-id="where-you-already-see-it">Where you already see it</h2>
-<p>Dynamic pricing is not new. Airlines have done it for decades. A seat on a Tuesday morning flight in November costs a fraction of the same seat on a Friday evening in December. Hotels, electricity markets, and concert tickets all follow similar patterns.</p>
-<p>What <em>is</em> new is the scale and sophistication. With modern data infrastructure, even small e-commerce shops can implement pricing strategies that used to require teams of revenue analysts.</p>
-<blockquote class="blockquote">
-<p>“The right price is whatever someone is willing to pay” is a common oversimplification. In practice, dynamic pricing tries to find the price that maximizes a specific objective — revenue, profit, or market share.</p>
-</blockquote>
-</section>
-<section id="the-core-idea" class="level2">
-<h2 class="anchored" data-anchor-id="the-core-idea">The core idea</h2>
-<p>At its simplest, dynamic pricing asks:</p>
-<ul>
-<li><strong>What is the current demand?</strong></li>
-<li><strong>What is the available supply?</strong></li>
-<li><strong>What price maximizes our objective given the above?</strong></li>
-</ul>
-<p>The “objective” varies. An airline might optimize for total revenue across all seats. A ride-sharing platform might optimize for market balance — enough drivers on the road to keep wait times low.</p>
-</section>
-<section id="what-this-series-will-cover" class="level2">
-<h2 class="anchored" data-anchor-id="what-this-series-will-cover">What this series will cover</h2>
-<p>Over the next few posts, we’ll build up from basic economic intuition to working pricing models:</p>
+<section id="key-insights" class="level3">
+<h3 class="anchored" data-anchor-id="key-insights">Key Insights</h3>
+<p>A few things to notice as you experiment with the simulation:</p>
 <ol type="1">
-<li>Demand curves and price elasticity</li>
-<li>A simple pricing model in Python</li>
-<li>Multi-product pricing and cannibalization</li>
-<li>Real-time pricing with bandit algorithms</li>
+<li><p><strong>Marginal analysis</strong>: Each seat is evaluated independently. The expected value of protecting seat <img src="https://latex.codecogs.com/png.latex?n"> depends only on the probability that business demand reaches <img src="https://latex.codecogs.com/png.latex?n">.</p></li>
+<li><p><strong>The fare ratio matters</strong>: With our 55% threshold (262/476), we protect seats as long as there’s better than a 55% chance of selling them at the business fare.</p></li>
+<li><p><strong>Protecting too few seats</strong> means selling cheap seats that could have been sold at the business fare. <strong>Protecting too many</strong> means empty seats that could have been sold at the saver fare. The optimal point balances these two risks.</p></li>
+<li><p><strong>Probability-based decisions</strong>: We’re not predicting exactly how many business customers will show up—we’re making optimal decisions under uncertainty.</p></li>
 </ol>
-<p>No PhD required — just some comfort with Python and basic statistics.</p>
-</section>
-<section id="a-word-of-caution" class="level2">
-<h2 class="anchored" data-anchor-id="a-word-of-caution">A word of caution</h2>
-<p>Dynamic pricing is powerful, but it comes with real ethical considerations. Surge pricing during emergencies, price discrimination that disproportionately affects certain groups, and opaque algorithms that customers can’t understand — these are all active areas of debate.</p>
-<p>We’ll touch on these issues as they come up. Good pricing isn’t just about maximizing a number.</p>
+<p>Littlewood’s Rule <span class="citation" data-cites="littlewood1972">(1972)</span> remains one of the most elegant results in revenue management. While modern systems use more sophisticated methods (like EMSR-b for multiple fare classes and network optimization for connecting flights), the core principle of protecting inventory for higher-value customers persists throughout the field.</p>
+
 
 
 </section>
+</section>
 
- ]]></description>
-  <category>fundamentals</category>
-  <category>economics</category>
-  <guid>https://www.kernyl.io/posts/what-is-dynamic-pricing/</guid>
-  <pubDate>Thu, 15 Jan 2026 00:00:00 GMT</pubDate>
-  <media:content url="https://www.kernyl.io/posts/what-is-dynamic-pricing/thumbnail.jpg" medium="image" type="image/jpeg"/>
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0">
+<div id="ref-littlewood1972" class="csl-entry">
+Littlewood, Kenneth. 1972. <span>“Forecasting and Control of Passenger Bookings.”</span> In <em>AGIFORS Symposium Proceedings</em>, 12:95–117.
+</div>
+</div></section></div> ]]></description>
+  <category>Revenue Management</category>
+  <category>Fundamentals</category>
+  <guid>https://www.kernyl.io/posts/fundamentals-of-revenue-management/</guid>
+  <pubDate>Tue, 17 Feb 2026 00:00:00 GMT</pubDate>
+  <media:content url="https://www.kernyl.io/posts/fundamentals-of-revenue-management/thumbnail.jpg" medium="image" type="image/jpeg"/>
 </item>
 </channel>
 </rss>

@@ -36,6 +36,7 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-8b4baf804e461d9b72633f0de59a0cac.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
@@ -68,12 +69,21 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-RCQGEPG5XP"></script>
+
+<script type="text/javascript">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-RCQGEPG5XP', { 'anonymize_ip': true});
+</script>
 
 
 <link rel="stylesheet" href="styles.css">
 </head>
 
-<body class="nav-fixed fullcontent quarto-light">
+<body class="nav-fixed quarto-light">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
@@ -101,7 +111,7 @@ ul.task-list li input[type="checkbox"] {
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/"> <i class="bi bi-github" role="img">
+    <a class="nav-link" href="https://github.com/alekracicot/kernyl-blog"> <i class="bi bi-github" role="img">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -121,37 +131,90 @@ ul.task-list li input[type="checkbox"] {
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#what-to-expect" id="toc-what-to-expect" class="nav-link active" data-scroll-target="#what-to-expect">What to Expect</a></li>
+  <li><a href="#the-authors" id="toc-the-authors" class="nav-link" data-scroll-target="#the-authors">The Authors</a></li>
+  </ul>
+</nav>
+    </div>
 <!-- main -->
-<div class="quarto-about-jolla">
-  <img src="profile.jpg" class="about-image
-  round " style="height: 15em; width: 15em;">
- <header id="title-block-header" class="quarto-title-block default">
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title">About</h1>
 </div>
+
+
+
 <div class="quarto-title-meta">
+
+    
+  
+    
   </div>
-</header><main class="content" id="quarto-document-content">
-<p>This blog explores dynamic pricing from first principles — starting with economic intuition and building up to working models in Python. The goal is to make these ideas accessible to data scientists and engineers who want to understand pricing beyond the textbook.</p>
+  
 
 
-</main> 
-  <hr class="about-sep">
-   <div class="about-links">
-  <a href="https://github.com/" class="about-link" rel="" target="">
-    <i class="bi bi-github"></i>
-     <span class="about-link-text">GitHub</span>
-  </a>
-  <a href="https://linkedin.com/" class="about-link" rel="" target="">
-    <i class="bi bi-linkedin"></i>
-     <span class="about-link-text">LinkedIn</span>
-  </a>
+</header>
+
+
+<p><em>Welcome to the exciting world of revenue management and dynamic pricing.</em></p>
+<p>Whether you’re an executive with years of practical experience in the airline business, a data scientist looking at applying your skills in the field, or just dreaming of a career in revenue management, our blog is intended to be a place to deepen your understanding of the principles behind RM. Our domain knowledge comes from working for various airlines around the world, but the principles we talk about here extend to other industries that price perishable assets, such as hotels or vacation rentals, car rentals, or events etc.</p>
+<hr>
+<section id="what-to-expect" class="level2">
+<h2 class="anchored" data-anchor-id="what-to-expect">What to Expect</h2>
+<p>We have diverse interests and hope to write for an equally diverse audience. Some posts will be geared toward revenue managers, while others will be more technical in nature.</p>
+<p>We’ll use categories to help you easily filter and find content that matches your interests. We’re currently building a pipeline of ideas around:</p>
+<ul>
+<li>Fundamentals of Revenue Management (a back-to-basics series)</li>
+<li>Experimentation in Airlines</li>
+<li>Paper Reviews and Discussions</li>
+</ul>
+<p>The theme and structure of this blog were inspired by <a href="https://www.vineeth.io/garden">Vineeth’s Digital Garden</a>.</p>
+</section>
+<section id="the-authors" class="level2">
+<h2 class="anchored" data-anchor-id="the-authors">The Authors</h2>
+<div class="grid">
+<div class="g-col-12 g-col-md-6">
+<div class="author-card">
+<p><img src="images/alek-placeholder.jpeg" class="author-photo img-fluid" alt="Alek Racicot"></p>
+<section id="alek-racicot" class="level3">
+<h3 class="anchored" data-anchor-id="alek-racicot">Alek Racicot</h3>
+<p>Hey, I’m Alek. I hold a Master’s in Economics from McGill University and work as a data scientist on dynamic pricing algorithms in the airline industry. I’ve worked with both full-service carriers and low-cost carriers. I’m particularly passionate about causal inference and experimentation.</p>
+<p><a href="https://www.linkedin.com/in/alek-racicot-542394149/" class="author-linkedin"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/linkedin.svg" class="linkedin-icon img-fluid"> LinkedIn</a></p>
+</section>
 </div>
 </div>
- <!-- /main -->
+<div class="g-col-12 g-col-md-6">
+<div class="author-card">
+<p><img src="images/bazyli-placeholder.jpeg" class="author-photo img-fluid" alt="Bazyli Szymanski"></p>
+<section id="bazyli-szymanski" class="level3">
+<h3 class="anchored" data-anchor-id="bazyli-szymanski">Bazyli Szymanski</h3>
+<p>Hi, I’m Bazyli. I hold a PhD in Transportation Science from MIT, where I focused on revenue management. Since then, I’ve worked in revenue management with airlines across Europe and North America. I’m a huge airline nerd and love just about everything related to travel.</p>
+<p><a href="https://www.linkedin.com/in/bazyli/" class="author-linkedin"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/linkedin.svg" class="linkedin-icon img-fluid"> LinkedIn</a></p>
+</section>
+</div>
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
     const isCodeAnnotation = (el) => {
       for (const clz of el.classList) {
         if (clz.startsWith('code-annotation-')) {                     

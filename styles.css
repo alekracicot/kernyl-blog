@@ -339,6 +339,84 @@ figure figcaption {
   text-decoration: underline;
 }
 
+/* ── About Page: Author Cards ────────────────────────── */
+
+.author-card {
+  text-align: center;
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background-color: var(--bg-secondary);
+  height: 100%;
+}
+
+.author-card h3,
+.author-card section,
+.author-card p,
+.content .author-card h3,
+.content .author-card p,
+.content .author-card section {
+  text-align: center !important;
+}
+
+.author-card h3 {
+  color: var(--accent);
+  margin-top: 0.8rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.3rem;
+}
+
+.author-card p {
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.author-card .quarto-figure,
+.author-card figure {
+  margin: 0;
+  display: inline-block;
+}
+
+.author-card figcaption {
+  display: none;
+}
+
+.author-photo {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border);
+}
+
+.author-linkedin {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--accent) !important;
+  font-weight: 500;
+  font-size: 0.92rem;
+}
+
+.linkedin-icon {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  vertical-align: middle;
+  filter: invert(35%) sepia(60%) saturate(1200%) hue-rotate(320deg) brightness(90%);
+}
+
+/* ── References / Appendix ────────────────────────────── */
+
+#quarto-appendix .quarto-appendix-contents {
+  padding: 1.5rem;
+}
+
+#quarto-appendix .quarto-appendix-heading {
+  margin-bottom: 1rem;
+}
+
 /* ── Misc Cleanup ─────────────────────────────────────── */
 
 .callout {

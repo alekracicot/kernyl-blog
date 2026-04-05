@@ -6,8 +6,11 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Bazyli Szymański &amp; Alek Racicot">
+<meta name="dcterms.date" content="2026-02-17">
+<meta name="description" content="Airline deregulation, the two-fare problem, and Littlewood’s Rule.">
 
-<title>Theory and practice of dynamic pricing – Kernyl</title>
+<title>Foundations of Revenue Management: From Deregulation to Littlewood’s Rule – Kernyl</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -20,30 +23,48 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<link href="./favicon.svg" rel="icon" type="image/svg+xml">
-<script src="site_libs/quarto-listing/list.min.js"></script>
-<script src="site_libs/quarto-listing/quarto-listing.js"></script>
-<script src="site_libs/quarto-html/quarto.js" type="module"></script>
-<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-8b4baf804e461d9b72633f0de59a0cac.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-9ebf109a3be8bdd5f6ff8120de8d6dad.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../favicon.svg" rel="icon" type="image/svg+xml">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-8b4baf804e461d9b72633f0de59a0cac.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-9ebf109a3be8bdd5f6ff8120de8d6dad.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -71,35 +92,6 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
-<script>
-
-  window.document.addEventListener("DOMContentLoaded", function (_event) {
-    const listingTargetEl = window.document.querySelector('#listing-listing .list');
-    if (!listingTargetEl) {
-      // No listing discovered, do not attach.
-      return; 
-    }
-
-    const options = {
-      valueNames: ['listing-image','listing-date','listing-title','listing-description','listing-categories',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
-      
-      searchColumns: ["listing-date","listing-title","listing-author","listing-image","listing-description","listing-categories"],
-    };
-
-    window['quarto-listings'] = window['quarto-listings'] || {};
-    window['quarto-listings']['listing-listing'] = new List('listing-listing', options);
-
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  });
-
-  window.addEventListener('hashchange',() => {
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  })
-  </script>
 <script async="" src="https://www.googletagmanager.com/gtag/js?id=G-RCQGEPG5XP"></script>
 
 <script type="text/javascript">
@@ -140,8 +132,8 @@ window.Quarto = {
 };
 </script>
 
-<link rel="stylesheet" href="styles.css">
-<link rel="alternate" type="application/rss+xml" title="Kernyl" href="index.xml" data-external="1"></head>
+<link rel="stylesheet" href="../../styles.css">
+</head>
 
 <body class="nav-fixed quarto-light">
 
@@ -150,7 +142,7 @@ window.Quarto = {
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a class="navbar-brand" href="./index.html">
+    <a class="navbar-brand" href="../../index.html">
     <span class="navbar-title">Kernyl</span>
     </a>
   </div>
@@ -161,11 +153,11 @@ window.Quarto = {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link active" href="./index.html" aria-current="page"> 
+    <a class="nav-link" href="../../index.html"> 
 <span class="menu-text">Posts</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./about.html"> 
+    <a class="nav-link" href="../../about.html"> 
 <span class="menu-text">About</span></a>
   </li>  
 </ul>
@@ -176,7 +168,7 @@ window.Quarto = {
 <span class="menu-text"></span></a>
   </li>  
   <li class="nav-item compact">
-    <a class="nav-link" href="./index.xml"> <i class="bi bi-rss" role="img">
+    <a class="nav-link" href="../../index.xml"> <i class="bi bi-rss" role="img">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -188,25 +180,57 @@ window.Quarto = {
     </nav>
 </header>
 <!-- content -->
-<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
-    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(2)</span></div><div class="category" data-category="RXhwZXJpbWVudGF0aW9u">Experimentation <span class="quarto-category-count">(1)</span></div><div class="category" data-category="RnVuZGFtZW50YWxz">Fundamentals <span class="quarto-category-count">(1)</span></div><div class="category" data-category="UmV2ZW51ZSUyME1hbmFnZW1lbnQ=">Revenue Management <span class="quarto-category-count">(2)</span></div></div></div>
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#a-walk-down-the-deregulation-lane" id="toc-a-walk-down-the-deregulation-lane" class="nav-link active" data-scroll-target="#a-walk-down-the-deregulation-lane">A walk down the deregulation lane</a></li>
+  <li><a href="#littlewoods-rule" id="toc-littlewoods-rule" class="nav-link" data-scroll-target="#littlewoods-rule">Littlewood’s Rule</a>
+  <ul class="collapse">
+  <li><a href="#interactive-simulation" id="toc-interactive-simulation" class="nav-link" data-scroll-target="#interactive-simulation">Interactive Simulation</a></li>
+  <li><a href="#key-insights" id="toc-key-insights" class="nav-link" data-scroll-target="#key-insights">Key Insights</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
 <!-- main -->
-<main class="content column-page-left" id="quarto-document-content">
+<main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Theory and practice of dynamic pricing</h1>
+<h1 class="title">Foundations of Revenue Management: From Deregulation to Littlewood’s Rule</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">Revenue Management</div>
+    <div class="quarto-category">Fundamentals</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Airline deregulation, the two-fare problem, and Littlewood’s Rule.
+  </div>
 </div>
 
 
+<div class="quarto-title-meta">
 
-<div class="quarto-title-meta column-page-left">
-
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Bazyli Szymański &amp; Alek Racicot </p>
+          </div>
+  </div>
     
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">February 17, 2026</p>
+    </div>
+  </div>
   
     
   </div>
@@ -216,73 +240,70 @@ window.Quarto = {
 </header>
 
 
-
-
-
-
-<div class="quarto-listing quarto-listing-container-default" id="listing-listing">
-<div class="list quarto-listing-default">
-<div class="quarto-post image-right" data-index="0" data-categories="UmV2ZW51ZSUyME1hbmFnZW1lbnQlMkNFeHBlcmltZW50YXRpb24=" data-listing-date-sort="1775257200000" data-listing-file-modified-sort="1775418707892" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="11" data-listing-word-count-sort="2193">
-<div class="thumbnail"><a href="./posts/experimentation101/index.html" class="no-external">
-
-<img loading="lazy" src="./posts/experimentation101/thumbnail.jpg" class="thumbnail-image">
-
-</a></div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./posts/experimentation101/index.html" class="no-external">Why Should Airlines Care About Experimentation?</a>
-</h3>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('UmV2ZW51ZSUyME1hbmFnZW1lbnQ='); return false;">Revenue Management</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('RXhwZXJpbWVudGF0aW9u'); return false;">Experimentation</div>
-
+<p>This post is the first in the series on fundamentals of Revenue Management, where we introduce key ideas and terminology behind what’s inside revenue management systems.</p>
+<section id="a-walk-down-the-deregulation-lane" class="level2">
+<h2 class="anchored" data-anchor-id="a-walk-down-the-deregulation-lane">A walk down the deregulation lane</h2>
+<p>The history of airline revenue management is often told through the tale of airline industry deregulation. Until the late 1970s, airlines in the US were essentially limited to offering a single fare per cabin (Economy / First class), with prices dictated by the Civil Aeronautics Board. Regardless of the airline, time to departure, or period of travel, in 1969 a customer would pay exactly $296 ($2,624 in 2026 dollars!) for a round-trip economy fare from Boston (BOS) to Los Angeles (LAX). Flying was a luxury for most, and from the perspective of this story—an inefficient way of pricing, where airlines were completely missing out on the more price-sensitive market segment, <strong>leading to lower capacity utilization and load factors</strong>. In 1978, Jimmy Carter signed the Airline Deregulation Act, which opened the doors for airlines to compete on fares.</p>
+<p>By 1979, the full economy fare for the BOS-LAX <strong>origin-destination (OD)</strong> market had risen to $476 ($2,133 in 2026, slightly less than a decade earlier when adjusted for inflation). That said, as an airline executive you now have the freedom to reduce that fare or introduce an additional price point targeting the more price-sensitive leisure customer segment. When adding this additional price point, a few critical questions arise:</p>
+<ul>
+<li>How much should the new fare cost?</li>
+<li>How many seats should we sell at that new fare?</li>
+<li>How do we prevent the cheaper fare from being purchased by business customers who could have afforded to pay the full fare?</li>
+</ul>
+<p>The first and third questions are fundamentally <strong>pricing</strong> questions. Historically, pricing has been disconnected from revenue management—a separation that remains in many legacy airlines today. The second question, however, is at the heart of revenue management: <strong>inventory control</strong>. Even with perfectly set fares and restrictions, we still need to decide how many seats to allocate to each fare class.</p>
+</section>
+<section id="littlewoods-rule" class="level2">
+<h2 class="anchored" data-anchor-id="littlewoods-rule">Littlewood’s Rule</h2>
+<p>Let’s say your pricing team decided that the Saver fare should cost $262 round-trip, and that it would only be available until 20 days before departure and require staying at the destination for at least the weekend. These restrictions effectively prevent business customers from <strong>buying down</strong> to the Saver fare. Still, we face the decision of ** how many seats to protect for the full-fare business customers** , given that we expect some to purchase within the last 20 days prior to departure.</p>
+<p>If we knew exactly how many business customers would arrive, the problem would be trivial. Given that the business fare is more expensive, if we know 15 business customers will arrive close to flight departure, we should protect exactly 15 seats for those customers. Similarly, if business customers always booked before leisure customers, we could simply sell the full fare until demand is exhausted, then sell remaining seats at the saver fare.</p>
+<p>Unfortunately, airlines face <strong>uncertain demand</strong> and have good reasons to beleive that high value customers, such as business travelers, typically book closer to departure.</p>
+<p>Luckily for us in this toy example we can leverage seminal work in airline revenue management and appy what is now know as Littlewood’s Rule <span class="citation" data-cites="littlewood1972">(<a href="#ref-littlewood1972" role="doc-biblioref">Littlewood 1972</a>)</span> to find how many seats we should protect for our business customers. The core idea it to protect seats for business customers until the expected marginal revenue from protecting an additional seat drops below the guaranteed revenue from selling the seat at the saver fare.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
 </div>
-<div class="delink listing-description"><a href="./posts/experimentation101/index.html" class="no-external">
-<p>Experimentation is critical for airlines, but it’s also extremely challenging to do right. Here’s why, and the framework that helps us think about it.</p>
-</a></div>
-</div>
-<div class="metadata">
-<a href="./posts/experimentation101/index.html" class="no-external">
-<div class="listing-date">
-Apr 4, 2026
-</div>
-</a>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>The Key Insight
 </div>
 </div>
-<div class="quarto-post image-right" data-index="1" data-categories="UmV2ZW51ZSUyME1hbmFnZW1lbnQlMkNGdW5kYW1lbnRhbHM=" data-listing-date-sort="1771286400000" data-listing-file-modified-sort="1771705550531" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="5" data-listing-word-count-sort="913">
-<div class="thumbnail"><a href="./posts/fundamentals-of-revenue-management/index.html" class="no-external">
+<div class="callout-body-container callout-body">
+<p>We protect seats for business customers until the expected marginal revenue from protecting an additional seat drops below the guaranteed revenue from selling the seat at the saver fare.</p>
+</div>
+</div>
+<p><strong>Littlewood’s Rule</strong> states: Protect seat <span class="math inline">\(n\)</span> if and only if:</p>
+<p><span class="math display">\[P(\text{Business demand} \geq n) \times \text{Business Fare} &gt; \text{Saver Fare}\]</span></p>
+<p>Where <span class="math inline">\(n\)</span> is the number of seats we’re considering protecting. Rearranging:</p>
+<p><span class="math display">\[P(\text{Business demand} \geq n) &gt; \frac{\text{Saver Fare}}{\text{Business Fare}}\]</span></p>
+<p>In our example with a $262 saver fare and $476 business fare:</p>
+<p><span class="math display">\[P(\text{Business demand} \geq n) &gt; \frac{262}{476} = 0.55\]</span></p>
+<p>This means: protect seat <span class="math inline">\(n\)</span> if there’s more than a 55% chance that business demand will be high enough to sell it.</p>
+<section id="interactive-simulation" class="level3">
+<h3 class="anchored" data-anchor-id="interactive-simulation">Interactive Simulation</h3>
+<p>Now it’s your turn. The chart below shows the expected marginal value of protecting each additional seat for business class — that is, <span class="math inline">\(P(\text{Business demand} \geq n) \times \$476\)</span>. The dashed line marks the saver fare. Use the slider to choose how many seats you’d protect, and see how your decision affects expected revenue.</p>
+<iframe src="littlewood_rule_sim.html" width="100%" height="750px" style="border:none;"></iframe>
+</section>
+<section id="key-insights" class="level3">
+<h3 class="anchored" data-anchor-id="key-insights">Key Insights</h3>
+<p>A few things to notice as you experiment with the simulation:</p>
+<ol type="1">
+<li><p><strong>Marginal analysis</strong>: Each seat is evaluated independently. The expected value of protecting seat <span class="math inline">\(n\)</span> depends only on the probability that business demand reaches <span class="math inline">\(n\)</span>.</p></li>
+<li><p><strong>The fare ratio matters</strong>: With our 55% threshold (262/476), we protect seats as long as there’s better than a 55% chance of selling them at the business fare.</p></li>
+<li><p><strong>Protecting too few seats</strong> means selling cheap seats that could have been sold at the business fare. <strong>Protecting too many</strong> means empty seats that could have been sold at the saver fare. The optimal point balances these two risks.</p></li>
+<li><p><strong>Probability-based decisions</strong>: We’re not predicting exactly how many business customers will show up—we’re making optimal decisions under uncertainty.</p></li>
+</ol>
+<p>Littlewood’s Rule <span class="citation" data-cites="littlewood1972">(<a href="#ref-littlewood1972" role="doc-biblioref">1972</a>)</span> remains one of the most elegant results in revenue management. While modern systems use more sophisticated methods (like EMSR-b for multiple fare classes and network optimization for connecting flights), the core principle of protecting inventory for higher-value customers persists throughout the field.</p>
 
-<img loading="lazy" src="./posts/fundamentals-of-revenue-management/thumbnail.jpg" class="thumbnail-image">
 
-</a></div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./posts/fundamentals-of-revenue-management/index.html" class="no-external">Foundations of Revenue Management: From Deregulation to Littlewood’s Rule</a>
-</h3>
-<div class="listing-categories">
 
-<div class="listing-category" onclick="window.quartoListingCategory('UmV2ZW51ZSUyME1hbmFnZW1lbnQ='); return false;">Revenue Management</div>
+</section>
+</section>
 
-<div class="listing-category" onclick="window.quartoListingCategory('RnVuZGFtZW50YWxz'); return false;">Fundamentals</div>
-
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-littlewood1972" class="csl-entry" role="listitem">
+Littlewood, Kenneth. 1972. <span>“Forecasting and Control of Passenger Bookings.”</span> In <em>AGIFORS Symposium Proceedings</em>, 12:95–117.
 </div>
-<div class="delink listing-description"><a href="./posts/fundamentals-of-revenue-management/index.html" class="no-external">
-<p>Airline deregulation, the two-fare problem, and Littlewood’s Rule.</p>
-</a></div>
-</div>
-<div class="metadata">
-<a href="./posts/fundamentals-of-revenue-management/index.html" class="no-external">
-<div class="listing-date">
-Feb 17, 2026
-</div>
-</a>
-</div>
-</div>
-</div>
-<div class="listing-no-matching d-none">No matching items</div>
-</div></main> <!-- /main -->
+</div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
