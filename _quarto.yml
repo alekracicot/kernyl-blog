@@ -3,6 +3,9 @@ project:
   resources:
     - CNAME
 
+execute:
+  freeze: true
+
 website:
   title: "Kernyl"
   description: "Exploring the theory and practice of dynamic pricing"
