@@ -59,38 +59,50 @@ There are much more complex statistical unconstraining methods out there (projec
 
 ## Optimization
 
-Now that the airline knows that there is an average of 30 flex customers on each flight, it needs to decide how many seats to protect for them. In other words, when should it stop accepting promo customers, in anticipation of those more valuable late bookings? One simple heuristic would be to protect 30 seats -- but is protecting for the average number of passengers the right policy?
+Now that the airline knows that there is an average of 30 flex customers on each flight, it needs to decide how many seats to protect for them. When should it stop accepting promo customers, in anticipation of late bookings? 
 
-Choosing a protection limit is a trade-off, and when deciding whether to protect 29, 30 or more or less seats, the RM system asks the question: what's the value of a sure additional promo booking now versus an uncertain flex booking in the future? Promo bookings are also uncertain, but if the promo booking within our limits (e.g. the last 140th seat) does not materialize, then we simply have an additional seat to sell for flex customers. On the other hand, if this promo bookings materializes, then it takes space for flex customers. 
+Consider the case when the airline has already sold 169 out of 170 seats in the promo fare by 35 days before departure. Given that on average you sell 30 flex tickets in the last 30 days before departure, you're essentially certain (probability close to 1) to sell that last seat at $1050. At this point, the value of that last seat is thus very close to $1050, and you should not sell it to the promo customer at $400.
 
-The value of a certain promo fare is $400, exactly the cost of the promo ticket. As for the flex fare, how likely are we to sell all our protected seats? If 30 is the average demand for the flex fare, then we will sell 30 seats or more exactly half of the time. That means, that from the last protected seat we can, on average expect 1/2 * $1050 = $525 in revenue, more than from leisure. We should protect at least 30 seats. 
+Now, what if we have sold 140 seats and have 30 left? How likely is it that we will sell all those remaining seats to flex customers? Our forecast tells us that, on average, we sell 30 seats in the flex fare, hence we can expect to sell 30 seats half of the time. That means, that from the last protected seat we can, on average expect 1/2 * $1050 = $525 in revenue, still more than $400. We should protect at least 30 seats. 
 
-Given the forecasted demand distribution for the flex fare, we can repeat this exercise for any protection level. 
+More generally, we can compute that expected value of the n-th seat protected for the flex fare for any n. To find the optimal protection level, we look for the largest number n such that the expected value from selling that n-th seat to the flex customer exceeds $400, the price of the promo fare, as represented by the equation below:
 
-This simple optimization mechanism, called Littlewood's rule 
+$$ \mathbb{P}(D_{flex} \geq n) * p_{flex} \geq p_{promo} $$
 
-To answer this question, let's go through a quick thought experiment. Suppose that instead of protecting 30 seats, the airline protected 1 seat only. 
+Based on our forecast of flex fare demand, we should protect 32 seats: we'll sell 32 with 38.8% probability (expected value of $406.93), while 33 only sell with 33.4% probability (expected value of $350.82). 32 protected seats translate to a booking limit of 138 for the promo fare. Typically, airlines booking limits are nested, meaning that the airline will allow to sell all seats allocated to the cheaper class in the more expensive class, hence a booking limit of 170 would apply to the flex fare, in case some flex bookings were to materialize early. 
 
-Demand is random (stochastic)
+This relatively simple approach to optimization for two fare classes is known as Littlewood's rule (Littlewood citation), and was created by Ken Littlewood at BOAC (precursor to British Airways) in 1972.
 
-## Overbooking
+## What's the optimal load factor?
 
-## Historical notes
-
-## Limitations 
-
-There are plenty of assumptions that went into this simple example - 
-prices are fixed 
-
-Origin-Destination optimization 
+Feel free to play around with the simple simulation below to check how the choice of booking limits and underlying demand impact the revenue and load factor for a flight, and how much of a difference a revenue management system can make!
 
 
- The promo fare is only available for purchase until 30 days before departure.
 
+Obviously the answer depends on how much demand for different products there is. But a common misconception is that 
+
+## Takeaways
+
+In this post, I wanted to expose you to the basic RM concepts, including the forecasting-optimization framework, and the idea of value of remaining capacity which underpins most RM systems used in practice. For any of you who practice RM, or for that matter for those who purchase airline tickets from time to time, it will be clear that our example is extremely simplistic:
+
+- we assumed that flex and promo fares correspond to distinct demand segments (independent demand assumption). In practice, some leisure customers may still purchase the flex fare when the promo fare is sold out, and business customers may buy-down to the promo fare, for example if their travel policy incentivizes them to book earlier and allows booking more restrictive fares
+
+- we restricted ourselves to managing inventory (how many seats to allocate to each fare class), and assumed that the products (flex/promo fares prices along with their restrictions) were already fixed. This assumption is historically realistic: at many airlines (notably legacy network carriers), the pricing department would create products, and then RM/inventory management would optimize the protection or booking limits. This is also how many existing RM systems work. That said, the more relevant question that airlines and system providers start asking is: what is the optimal price for each product, or even more generally what are the optimal products and prices that should be offered at any given point in time? Maybe the flex fare should cost $900 and not $1050? Or the price for both flex and promo could vary continuously depending on how the demand materializes?
+
+- we may have made it seem like forecasting is easy. In practice, due to extremely high variability (events, seasonality, but also pure randomness), complexity of customer choice, and data sparsity (in partcular for network carriers), and demand endogeneity when trying to estimate the price-demand relationship, it is notably difficult 
+
+We'll turn to dealing with those and other assumptions in future posts. In the meantime, let us know what you think about the post and what RM topics would you like covered next!
+
+## References 
+
+Littlewood 1972
+Belobaba Global Airline industry
+Weatherford forecast unconstraining
 
 *conveniently, that's the two cities where the authors of this blog are from and at the time of writing no airline is operating the flight. 
 
 
+### OLD STUFF BELOW
 
 
 ## A walk down the deregulation lane
