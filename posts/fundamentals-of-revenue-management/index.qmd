@@ -1,7 +1,7 @@
 ---
 title: "Foundations of Revenue Management: From Deregulation to Littlewood's Rule"
 author: "Bazyli Szymański & Alek Racicot"
-date: "2026-02-17"
+date: "2026-04-06"
 description: "Airline deregulation, the two-fare problem, and Littlewood's Rule."
 categories: [Revenue Management, Fundamentals]
 image: thumbnail.jpg
@@ -13,20 +13,96 @@ resources:
   - littlewood_sim.html
 ---
 
-This post is the first in the series on fundamentals of revenue management (RM), where we introduce key ideas and terminology behind systems that optimize prices offered by capacity-constrained businesses. While we take an airline perspective, the foundational ideas we introduce here equally apply to other businesses such as hotels, car rentals, events, or even fast fashion. 
+## Introduction
+
+What is the optimal load factor for an airline across the entire year? A friend got recently asked that exact question during their job interview for a position at an airline revenue management department. If you are tempted to say "it depends", you are not wrong. In this post, we will show you how the answer depends on .
+
+To understand how revenue management (RM) systems work, let's start with a super simple example. Consider an airline operating a single daily flight between Montreal (YUL) and Warsaw (WAW)* that is selling two types of fares: a bare-bones non-refundable promo fare at $400, and a fully refundable flex fare at $1050. In order to prevent business customers to buy the cheaper promo fare, the airline also adds a restriction making the promo fare only available until 30 days before departure (advance purchase restriction): the pricing department assumes that business customers have higher willingness-to-pay, and book closer to flight departure. These two fares are available for the same economy class seats on the plane, and hence this price differentiation can be considered an example of third-degree price discrimination.
+
+The airline has already decided on pricing (what types of fares to offer and at what price). Still, it has one more lever to maximize its revenues from upcoming flights, managing inventory: when to stop selling the promo fare? Or, how many seats to protect for the flex fare so that late-arriving business passengers are able to spend $1050 for the full ticket?
+
+## Why this question matters
+
+Airline's inventory is finite and perishable. The aircraft operating Montreal to Warsaw only has 170 economy class seats and the airline can't just stretch it (finite inventory, inelastic supply), and once the flight departs all remaining seats are worthless (perishable inventory). Hence, we need a balance: sell enough $400 promo fares early not to leave with many empty seats, but save sufficient space for those willing to pay $1050 in order to maximize the total revenue opportunity. If no booking limits are imposed on the promo fare, the entire plane may sell out at $400 (very high load factor, low yield). If all seats are protected for flex, then the airline may end up selling just a small fraction but at $1050 (very low load factor, high yield). The job of revenue management is to thread the balance between yield and load factor, in order to maximize revenues.
+
+By the way, the RM question matters in many, but not all industries. Hotels? Events, such as Bad Bunny concerts? Absolutely, there's a limited number of rooms/seats and there is no value after the night finishes. Online marketplaces like Walmart or Amazon? Not exactly. Razors are easy to replenish and they don't really expire. This is not to say that advanced pricing techniques are not used in these other industries (Amazon is notable for their pricing and merchandising science), but the value of perishable capacity calculated by RM systems is not central to these businesses as it is for airlines.
+
+## Airline RM systems: forecasting and optimization
+
+Most revenue management systems used by airlines today break the problem into two steps: forecasting and optimization. 
+
+- The forecaster, typically using historical data such as past bookings, determines how much demand for each product (e.g. promo and flex fare between Montreal and Warsaw) there is for each upcoming flight. 
+
+- The optimizer then takes the demand forecast and calculates the booking limits (more generally, a pricing policy) that assuming that the forecast is correct, will maximize revenues from upcoming flights.
+
+This simple framework is depicted in the figure below.
+
+As a side note, over the past 50+ years of applications of revenue management,  practitioners and academics focus has been on developing new forecasting and optimization techniques, both have proven to have massive impacts on airline revenues. More recently, more work has gone into breaking up with the forecaster-optimizer framework and on RM systems that create a pricing policy directly based on data without an explicit forecasting step, using reinforcement learning, or specialized deep neural network architectures. If this sounds complicated right now, don't worry, as the goal of this post is to familiarize you with the foundations, that are still very relevant today.
+
+One example of advancements in RM systems that we do not tackle
+
+In fact, a network airline such as Delta, Air Canada, or LOT Polish, will forecast OD demand, that is demand between origin and destination such as 
+
+For the sake of this introduction, let's keep things simple and get our hands dirty with an example. 
+
+## Forecasting
+
+Let's begin by building a very simple forecast of demand for promo and flex fares, by assuming that the demand for upcoming flights between Montreal and Warsaw on a given day of week follows the same pattern (is drawn from the same distribution) as the last year of demand for that flight on that same day of week. The graph below shows historical bookings from the previous 52 Saturdays. 
+
+Here, we are looking at a very simple dataset. There are no seasonal patterns, and no special events like Christmas or F1 race {add footnote about F1 track in Montreal}. The airline also assumes that the demand for each fare class is normally distributed, thus to estimate the demand distribution all the airline needs to do is to find the average (mean) and standard deviation. An analyst looks at the data, and quickly concludes that there was an average of 115 promo bookings (std dev. = 20), and 30 flex bookings (std dev. = 9). Hence, our promo demand distribution can be approximated by a Normal distribution with $\mu_{promo} = 115$, and similarly, flex demand $\sim N(30,9)$. Makes sense, right?
+
+Well, almost. Remember that what the airline is trying to forecast is the demand for its products, and not the bookings. The difference is subtle, but whenever a product is not available for sale (for example, the flight is sold out), the airline won't register the customers who would have bought its products had they been available. If you give the graph a careful glance, you'll notice that we never recorded more than (a total of) 170 bookings, the physical capacity of the plane's economy cabin (we're not overbooking just now). Note that in some cases, we recorded no flex bookings at all -- not for lack of demand, but because we sold out all 170 seats in the cheaper promo fare! 
+
+So how to deal with such incomplete (censored) data? Airlines call this procedure unconstraining (sometimes detruncating), which is essentially trying to predict how many customers would have purchased in the time when a certain product was sold out. One simple unconstraining approach is to extrapolate booking patterns from flights that were not sold out to the period when a given flight was sold out. As an example, let's say the flex fare was sold out for the last 3 days before departure after 32 tickets were sold. If, on average, 15% of flex customers book within the last 3 days, we would add back about 5.6 bookings (32 * 1 / (1 - 15%)), an average that we would have expected to arrive had the flight not been sold out. 
+
+There are much more complex statistical unconstraining methods out there (projection detruncation and in particular EM - expectation maximization are often used), but at this point the key is to understand the gist. Now that the airline has applied some form of unconstraining, it has determined that the actual distribution of promo demand is (122, 25) and (30, 7) for flex. How do we apply this information to calculate booking limits?
+
+## Optimization
+
+Now that the airline knows that there is an average of 30 flex customers on each flight, it needs to decide how many seats to protect for them. In other words, when should it stop accepting promo customers, in anticipation of those more valuable late bookings? One simple heuristic would be to protect 30 seats -- but is protecting for the average number of passengers the right policy?
+
+Choosing a protection limit is a trade-off, and when deciding whether to protect 29, 30 or more or less seats, the RM system asks the question: what's the value of a sure additional promo booking now versus an uncertain flex booking in the future? Promo bookings are also uncertain, but if the promo booking within our limits (e.g. the last 140th seat) does not materialize, then we simply have an additional seat to sell for flex customers. On the other hand, if this promo bookings materializes, then it takes space for flex customers. 
+
+The value of a certain promo fare is $400, exactly the cost of the promo ticket. As for the flex fare, how likely are we to sell all our protected seats? If 30 is the average demand for the flex fare, then we will sell 30 seats or more exactly half of the time. That means, that from the last protected seat we can, on average expect 1/2 * $1050 = $525 in revenue, more than from leisure. We should protect at least 30 seats. 
+
+Given the forecasted demand distribution for the flex fare, we can repeat this exercise for any protection level. 
+
+This simple optimization mechanism, called Littlewood's rule 
+
+To answer this question, let's go through a quick thought experiment. Suppose that instead of protecting 30 seats, the airline protected 1 seat only. 
+
+Demand is random (stochastic)
+
+## Overbooking
+
+## Historical notes
+
+## Limitations 
+
+There are plenty of assumptions that went into this simple example - 
+prices are fixed 
+
+Origin-Destination optimization 
+
+
+ The promo fare is only available for purchase until 30 days before departure.
+
+
+*conveniently, that's the two cities where the authors of this blog are from and at the time of writing no airline is operating the flight. 
+
+
+
 
 ## A walk down the deregulation lane
-The history of airline revenue management is often told through the tale of airline industry deregulation. Until the late 1970s, airlines in the US were essentially limited to offering a single fare per cabin (Economy / First class), with prices dictated by the Civil Aeronautics Board. Regardless of the airline, time to departure, or period of travel, in 1969 a customer would pay exactly $296 ($2,624 in 2026 dollars!) for a round-trip economy fare from Boston (BOS) to Los Angeles (LAX). Flying, for the average customer, was expensive and airlines were limited to competing on product. That changed in 1978 when Jimmy Carter signed the Airline Deregulation Act, opening the doors for airlines to compete on fares -- and, in consequence, let them go a very long way in optimizing prices.
+The history of airline revenue management is often told through the tale of airline industry deregulation. Until the late 1970s, airlines in the US were essentially limited to offering a single fare per cabin (Economy / First class), with prices dictated by the Civil Aeronautics Board. Regardless of the airline, time to departure, or period of travel, in 1969 a customer would pay exactly $296 ($2,624 in 2026 dollars!) for a round-trip economy fare from Boston (BOS) to Los Angeles (LAX). Flying was a luxury for most, and from the perspective of this story—an inefficient way of pricing, where airlines were completely missing out on the more price-sensitive market segment, **leading to lower capacity utilization and load factors**. In 1978, Jimmy Carter signed the Airline Deregulation Act, which opened the doors for airlines to compete on fares.  
 
-By 1979, a year after deregulation, the full economy fare for the BOS-LAX **origin-destination (OD)** market had risen to $476 ($2,133 in 2026, slightly less than a decade earlier when adjusted for inflation). That said, airline executives now have gotten the freedom to introduce an additional price point targeting the more price-sensitive leisure customer segment^[They actually can publish as many fares as they wish, but more about that a bit later down the post]. When adding this additional price point, a few questions arise:
+By 1979, the full economy fare for the BOS-LAX **origin-destination (OD)** market had risen to $476 ($2,133 in 2026, slightly less than a decade earlier when adjusted for inflation). That said, as an airline executive you now have the freedom to reduce that fare or introduce an additional price point targeting the more price-sensitive leisure customer segment. When adding this additional price point, a few critical questions arise:
 
 - How much should the new fare cost?
-- How do we prevent the cheaper fare from being purchased by business customers who could have afforded to pay the full fare? 
 - How many seats should we sell at that new fare? 
+- How do we prevent the cheaper fare from being purchased by business customers who could have afforded to pay the full fare? 
 
-All these three questions have to do with the prices offered to the customer. However, due to the fact that /systems/
-
-The first two questions are fundamentally **pricing** questions. Historically, pricing has been disconnected from revenue management — a separation that remains in many legacy airlines today. The second question, however, is at the heart of revenue management: **inventory control**. Even with perfectly set fares and restrictions, we still need to decide how many seats to allocate to each fare class.
+The first and third questions are fundamentally **pricing** questions. Historically, pricing has been disconnected from revenue management—a separation that remains in many legacy airlines today. The second question, however, is at the heart of revenue management: **inventory control**. Even with perfectly set fares and restrictions, we still need to decide how many seats to allocate to each fare class.
 
 ## Littlewood's Rule
 Let's say your pricing team decided that the Saver fare should cost $262 round-trip, and that it would only be available until 20 days before departure and require staying at the destination for at least the weekend. These restrictions effectively prevent business customers from **buying down** to the Saver fare. Still, we face the decision of ** how many seats to protect for the full-fare business customers** , given that we expect some to purchase within the last 20 days prior to departure.
