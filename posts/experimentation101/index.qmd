@@ -36,13 +36,13 @@ In modern times, many of the developments in experimentation methodology have co
 ![Example t-test for an online experiment](t-test-example.png){#fig-t-test}
 
 
-I'm skipping over a lot of the technicalities here. There are sophisticated statistical models in place at these companies to run experiments faster, in parallel etc. The point I am trying to make is that these experiments are, at first glance, well behaved. It's easy to randomly assign users to a test or control group. Users don't affect each other's outcomes. You can typically collect a large amount of data quickly, which lets you make confident estimates.
+I'm skipping over a lot of the technicalities here. There are sophisticated statistical models in place at these companies to run experiments faster, in parallel etc. The point I am trying to make is that these experiments are, at first glance, well behaved. It's **easy to randomly assign users to a test or control group. Users don't affect each other's outcomes. You can typically collect a large amount of data quickly**, which lets you make confident estimates.
 
 ### The shared inventory problem
 
-Now contrast this with our pricing analyst who wants to see if raising fares will help the airline weather a fuel crisis. Unlike the online experiment, the analyst cannot simply show different prices to customers looking at the same itinerary through the same channel. This isn't a limitation of airline distribution systems. It's that such a test wouldn't make sense. In an RM world, the price that one customer sees is affected by the actions of every customer who came before them.
+Now contrast this with our pricing analyst who wants to see if raising fares will help the airline weather a fuel crisis. Unlike the online experiment, the analyst cannot simply show different prices to customers looking at the same itinerary through the same channel. This isn't a limitation of airline distribution systems. It's that **such a test wouldn't make sense**. In an RM world, the price that one customer sees is affected by the actions of every customer who came before them.
 
-To see why, consider the two fare ladders below. The control group keeps the airline's current pricing while the test group doubles the fares at every level. Both structures share the same authorization units (AU), which represent the cumulative number of seats the airline is willing to sell at or below each fare.
+To see why, consider the two fare ladders below. The control group keeps the airline's current pricing while the test group doubles the fares at every level. Both structures share the same authorization units (AU), which represent the cumulative number of seats the airline is willing to sell at above or  each fare.
 
 ![Fare ladder comparison between control and test groups. Both share the same AU (inventory) limits.](fare-ladder-experiment.png){#fig-fare-ladder}
 
@@ -53,9 +53,9 @@ Say that after some time, 42 customers who saw the control fares and 18 who saw 
 In short, control and test customers affect each other through the shared inventory, hence this test is biased! This means that the randomization strategy needs to be done at a more aggregate level, for example by assigning entire flights to either the test or control group. This effectively reduces the sample size for airlines, which makes it harder to detect small differences in performance. It also means that the test and control groups are more likely to differ in their characteristics, which can bias results if not properly accounted for.
 
 
-### Slow observation collection
+### The future value of remaining inventory
 
-Another critical difference from the online testing world stems from the capacity constraint. If you compare the revenue of two flights departing in July under the control and test fares, measuring revenue up through March doesn't tell you much about total revenue at departure. Cheaper fares tend to sell faster, which can mean more revenue early on but fewer seats left to sell closer to departure when fares are typically higher. To adequately compare the two pricing policies, you need to **either wait until the departure of the flight** to collect the observation or use a prediction to **estimate the future value of remaining inventory**. 
+There is another critical difference from the online testing world stems from the capacity constraint. If you compare the revenue of two flights departing in July under the control and test fares, measuring revenue up through March doesn't tell you much about total revenue at departure. Cheaper fares tend to sell faster, which can mean more revenue early on but fewer seats left to sell closer to departure when fares are typically higher. To adequately compare the two pricing policies, you need to **either wait until the departure of the flight** to collect the observation or use a prediction to **estimate the future value of remaining inventory**. 
 
 Both options introduce challenges: waiting until departure means that you can't iterate quickly on your experiments, while using predictions introduces model risk and uncertainty into your estimates.
 
@@ -64,47 +64,72 @@ This is far from an exhaustive list of challenges airlines face when running exp
 :::
 
 
-## The Potential Outcomes Framework
+## The framework behind every test
 
-The core idea of the potential outcomes framework is to reframe the problem of estimating a treatment effect as a missing data problem [@hernan2020]. In an ideal world, we could take the same unit (in our case, a specific flight) and expose it to different treatments (pricing strategies) in parallel universes. Any difference in the results (say, total passenger revenue) would necessarily be caused by the change in pricing, since everything else stayed the same across universes.
+Let's go back to our fare increase during the fuel crisis. You've decided to test whether raising fares by 20% improves revenue. You randomly assign 200 flights to keep current fares (**control**) and 200 flights to get the increase (**test**). After all flights depart, you compare average revenue per flight. Test is up 2.3%. Is this a success?
 
-Obviously, generating alternative universes is not possible. So statisticians and econometricians use mathematical models and randomization to approximate that ideal scenario. Below, we'll walk through the key assumptions of the potential outcomes framework and what they mean for experimentation in revenue management.
+Not so fast. That 2.3% is only meaningful if that result is statistically significant and the test was set up correctly. "Correctly" here means satisfying a specific set of assumptions defined by the **Potential Outcomes Framework** [@hernan2020]. This framework underpins statistical tests and understanding it allows us to critically evaluate the validity of our results.
 
-Throughout this section, we'll use the terms **test** (the group receiving the new treatment) and **control** (the group receiving the baseline or existing treatment) consistently. 
+The core idea is very simple. To know whether the fare increase truly helped, you'd need to observe the same 200 flights under both the old and the new fares. Same passengers, same market conditions, same everything. The only difference: the price. Any gap in revenue would then be purely caused by the fare change.
 
-### SUTVA (Stable Unit Treatment Value Assumption)
+Obviously, you can't run the same flight twice. Randomization is our best substitute: create two groups that are similar enough that comparing them approximates this impossible parallel-universe scenario. The quality of that approximation rests on a few assumptions. Let's walk through each one using our fare increase test.
 
-SUTVA can be broken down into two requirements:
+### 1. No interference between units
 
-#### 1. No interference
+A unit's outcome (e.g. revenue of a flight) must not depend on another unit treatment assignment [@hernan2020].
 
-The first is that one **unit's outcome under a given treatment does not depend on other units' treatment assignments** [@hernan2020]. In RM, this shows up most clearly through capacity: every booking changes your available inventory, which changes your pricing, which affects every future customer. This means randomization needs to happen at a more aggregate level (for example, the flight level) rather than the individual customer level.
+For instance, a light LGW-CDG on Monday is in the test group (higher fares). Flight LGW-CDG on Tuesday is in control (current fares). A price-sensitive customer shopping for either day sees the inflated Monday fare and books Tuesday instead. That Tuesday sale didn't happen because the control fares were compelling. It happened because the test fares on Monday pushed the customer over.
 
-But even at the flight level, interference can be an issue. If two flights from London to New York on the same day are assigned to different treatments, passengers may substitute between them. This can also happen across markets: lowering fares substantially on one route risks cannibalizing demand from substitutable flights. RM professionals typically try to separate and cluster their test and control units so that there is as little substitution and interference as possible between them.
+Now your control group looks better than it should, and your test group looks worse. The estimated treatment effect is biased downward. This is **interference**: the treatment on one unit changed the outcome on another. This is exactly the same issue we described in the shared inventory problem, but here instead of customers affecting each other through the remaining capacity, we have flights affecting each other through demand substitution.
 
-#### 2. No hidden treatment variations
+::: {.callout-tip}
+## How RM teams mitigate interference
+Usually, to mitigate the risk of interference, RM teams separate test and control units in time and geography such that the likelihood of customers substituting between them is low. This is not a perfect solution, but it's a practical one. 
+:::
 
-The second requirement is that there is only one version of each treatment, meaning every unit assigned to a given treatment receives the same treatment. This is usually less of a concern, but it can become problematic when the treatment is contextual. For example, say you want to increase overbooking thresholds for flights with very high yield. A flight might qualify for that increase either 30 days or 10 days before departure. The "dosage" of the treatment differs because some flights have more time to absorb its effects. If we don't account for the fact that the "dosage" of the treatment varies across units, we end up with an average treatment effect that represents this mixture of different versions of the treatment, which can be missleading and hard to interpret.
 
-### Exchangeability
+### 2. No hidden treatment variations
 
-This is sometimes called the "randomization" assumption. It means that the group assigned to the test would have had the same average outcome as the group assigned to control, had they been swapped. In other words, **treatment assignment is independent of potential outcomes**. This breaks down when there is sampling bias in the randomization strategy, or when the randomization simply isn't effective at balancing the two groups.
+Every unit assigned to a treatment must receive the **same version** of that treatment. This is usually less of a concern, but it matters when the treatment is contextual. Say you want to increase overbooking thresholds for flights with very high yield. A flight might qualify for that increase either 30 days or 10 days before departure. The "dosage" of the treatment differs because some flights have more time to absorb its effects. If we don't account for this variation, we end up averaging over different versions of the treatment, which is misleading and hard to interpret.
 
-For instance, suppose you create clusters of markets (domestic, transatlantic, Pacific, etc.) and randomly assign each cluster to a different RM system. There is no guarantee that the control and test groups would have behaved the same way under the same system. Pre-existing differences between the groups could drive the observed results. In practice, this can be examined before the test by comparing metrics of interest (load factor, yield, share of business customers, etc.) and confirming that the two groups look comparable after randomization **(this is called covariate balance)**.
 
-### Positivity
+### 3. Exchangeability
 
-Positivity assumes that every type of unit in your experiment has a non-zero probability of receiving every version of the treatment. This matters because it limits how far you can generalize your results. For example, if you test new ancillary bundles only on your direct channel and never expose customers booking through a GDS, then your results only apply to the population of direct-channel customers. The same issue arises at the flight level when certain conditions must be met (for instance, a low booked load factor or high yield) for the treatment to activate.
+The test and control groups must be **interchangeable**: if you swapped their assignments, the average outcomes would stay the same. In other words, treatment assignment is independent of potential outcomes.
 
-### Consistency
+Back to the fare increase. Imagine the randomization happened to put all summer peak flights in the test group and all off-peak flights in control. Peak flights would have earned more revenue regardless of the fare change. That 2.3% uplift you measured? Part of it (maybe all of it) is just seasonality, not pricing.
 
-Consistency states that the outcome we observe is truly the result of the assigned treatment. Without it, we can't estimate a counterfactual, because even our factual observation (the result following treatment assignment) is unreliable. This can be a problem when it's hard to pin down what the treatment actually was. For example, if your test group experienced both the test and control prices during the booking window (say, because the treatment was switched on partway through), then the observed outcome is not the true potential outcome under the test treatment. This is known as mixed treatment bias.
+In practice, you check this **before** the test starts. Compare pre-treatment metrics between groups: load factor, yield, booking curves, share of business customers. If the groups don't look comparable, re-randomize.
+
+
+### 4. Positivity
+
+Every units in your experiment must have a non-zero chance of receiving each treatment. This constrains how far you can generalize. If you only tested the fare increase on short-haul European routes, you can't claim the result applies to transatlantic flights. Similarly, if the fare increase only activates when booked load factor is below 50%, you've only learned something about low-demand flights.
+
+
+### 5. Consistency
+
+The outcome you observe must genuinely result from the assigned treatment. If a test flight experienced both old and new fares during its booking window (say, because the treatment was switched on partway through), the observed revenue is not the true outcome we would have seen under a consistent treatment (test fares for the full booking window).
+
+
+## Are you even measuring the right thing?
+
+You can nail every assumption above and still draw the wrong conclusion if you are measuring the wrong thing. Your metric needs to actually represent the business outcome you care about hence it is important to put careful attention to your **Overall Evaluation Criterion (OEC)**.
+
+Say that for our fare increase test, we decided to measure ticket revenue, how confident would you be a results showing a 2% uplift? You would probably be concerned that customers responded to higher fares by ditching ancillary purchases or maybe by downgrading from premium to economy. Some of these concerns can be directly addressed by measuring total revenue insead but some can't. For example, if the fare increase erodes customer loyalty, you won't see that in the revenue of the current flight. You would likely need to track customer lifetime value to capture that effect which may not be feasible on a short time horizon. 
+
+Since the metric you choose shapes the decisions you make, it's worth asking yourself if **the metric capture the full effect I am trying to measure?** You don't want to simply track first order effect (e.g. ancillary revenue) if there are likely to be second order effects (e.g. ancillary revenue) that you can measure directly. If you can't measure the full effect directly, then we need to make it explicity that the metric is an imperfect proxy for the true outcome you care about.
+
+::: {.callout-warning}
+## When the "right" metric optimises the wrong outcome
+
+Kohavi and Thomke describe an experiment at Bing where a bug degraded the relevance of search results. Revenue per search went **up** because users, unable to find what they needed in the organic results, clicked more on ads. If the team had used revenue per search as their OEC, they would have shipped a version of Bing that was objectively worse for users. The correct OEC needed to combine revenue with user satisfaction metrics like successful session rate to avoid shallow optimization [@kohavi2017].
+:::
+
 
 
 ## Wrapping up
 
-Understanding these assumptions provides a complete toolkit for experiment design. It also highlights why A/B tests require a lot of business judgment and domain expertise to be done right. 
+Experimentation in airlines is hard to do. We are often trying to measure a small signal on a noisy outcome, are limited by shared inventory to randomize at an aggregate level, and can very easily violate "silent" assumptions made by our statistical tests. The potential outcomes framework gives us the language to ask whether a test is actually valid before you launch it. Explicitely checking each assumption can help us avoid costly mistakes and make better decisions.
 
-I promised myself that I would avoid getting technical in this post and that I would keep it short, but I can't end without touching on the **Overall Evaluation Criteria (OEC)**. A/B tests answer the question you ask, not necessarily the one you thought you asked. It's super important to always make sure that that your KPI's and metrics align with your true business objectives.  For example, a test for a new pricier bundle might drive a 15% spike in ancillary revenue, but if that increase comes at the expense of ticket sales, the airline could be worse offoverall. If you aren't measuring total revenue impact, you risk adopting changes that optimize one metric while hurting the business as a whole.
-
-We are putting together an **experiment checklist** specifically for RM and will publish it on this website in the coming weeks.
+In an upcoming post, we will share a checklist that we use to design experiments in RM. It's not exhaustive, but it covers the most common failure modes. We will also discuss some of the strategies we use to mitigate these risks and how we think about trade-offs when designing experiments.
