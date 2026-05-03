@@ -129,8 +129,8 @@
   
   // App State
   let state = {
-    meanBiz: 75,
-    meanSaver: 205,
+    meanBiz: 25,
+    meanSaver: 150,
     businessFare: 850,
     saverFare: 200,
     protect: 40,
@@ -138,9 +138,9 @@
   };
 
   const demandPresets = {
-    low: { meanBiz: 15, meanSaver: 160, label: "Low Demand" },
-    med: { meanBiz: 25, meanSaver: 260, label: "Medium Demand" },
-    high: { meanBiz: 40, meanSaver: 260, label: "High Demand" }
+    low: { meanBiz: 15, meanSaver: 140, label: "Low Demand" },
+    med: { meanBiz: 25, meanSaver: 150, label: "Medium Demand" },
+    high: { meanBiz: 40, meanSaver: 160, label: "High Demand" }
   };
 
   // Poisson PMF using log-space for numerical stability
@@ -182,14 +182,45 @@
   }
 
   function calculateMetrics() {
-    const bizSold = calculateExpectedSold(state.meanBiz, state.protect);
-    const saverSold = calculateExpectedSold(state.meanSaver, TOTAL_SEATS - state.protect);
-    
-    const bizRev = bizSold * state.businessFare;
-    const saverRev = saverSold * state.saverFare;
-    const totalRev = bizRev + saverRev;
+    // Period 1: Saver fares sold up to (capacity - protection)
+    // Period 2: Business fares sold into remaining seats (capacity - period 1 sales)
+    const saverCapacity = Math.max(0, TOTAL_SEATS - state.protect);
 
-    const loadFactor = (bizSold + saverSold) / TOTAL_SEATS;
+    // Precompute E[min(D_biz, k)] for each possible remaining capacity k
+    const bizExpSold = new Array(TOTAL_SEATS + 1);
+    for (let k = 0; k <= TOTAL_SEATS; k++) {
+      bizExpSold[k] = calculateExpectedSold(state.meanBiz, k);
+    }
+
+    // Integrate over all possible saver demand realizations
+    // Remaining inventory is random: TOTAL_SEATS - min(D_saver, saverCapacity)
+    const saverMean = state.meanSaver;
+    const saverLimit = Math.ceil(saverMean + 6 * Math.sqrt(saverMean) + 20);
+
+    let totalRev = 0;
+    let totalSaverSold = 0;
+    let totalBizSold = 0;
+
+    let pSaver = Math.exp(-saverMean);
+    for (let s = 0; s <= saverLimit; s++) {
+      const sold = Math.min(s, saverCapacity);
+      const remaining = TOTAL_SEATS - sold;
+      const eBiz = bizExpSold[remaining];
+
+      totalRev += pSaver * (sold * state.saverFare + eBiz * state.businessFare);
+      totalSaverSold += pSaver * sold;
+      totalBizSold += pSaver * eBiz;
+
+      pSaver *= saverMean / (s + 1);
+      if (pSaver < 1e-18 && s > saverMean) break;
+    }
+
+    const loadFactor = (totalSaverSold + totalBizSold) / TOTAL_SEATS;
+    
+    // Marginal value calculation for the n-th seat protected
+    // If we protect seat n, we are taking it away from a potential Saver passenger in Period 1
+    // to keep it available for a potential Business passenger in Period 2.
+    // The "cost" is the Saver Fare, the "gain" is the Prob(Biz Demand >= n) * Business Fare.
     const marginalVal = probGTE(state.protect, state.meanBiz) * state.businessFare;
 
     // Find optimal
