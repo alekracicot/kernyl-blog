@@ -80,20 +80,20 @@
   <!-- Fares Panel -->
   <div id="faresPanel" class="controls-panel">
     <div class="slider-group">
-      <label>Business Fare <span id="val-bizFare">$476</span></label>
-      <input type="range" id="input-bizFare" min="200" max="1000" step="10" value="476">
+      <label>Business Fare <span id="val-bizFare">$600</span></label>
+      <input type="range" id="input-bizFare" min="200" max="1200" step="10" value="600">
     </div>
     <div class="slider-group">
-      <label>Saver Fare <span id="val-saverFare">$262</span></label>
-      <input type="range" id="input-saverFare" min="50" max="500" step="5" value="262">
+      <label>Saver Fare <span id="val-saverFare">$250</span></label>
+      <input type="range" id="input-saverFare" min="50" max="800" step="5" value="250">
     </div>
   </div>
 
   <!-- Protection Panel -->
   <div id="protectionPanel" class="controls-panel">
     <div class="slider-group">
-      <label>Seats Protected for Business <span id="val-protect">15</span></label>
-      <input type="range" id="input-protect" min="0" max="100" step="1" value="15">
+      <label>Seats Protected for Business <span id="val-protect">40</span></label>
+      <input type="range" id="input-protect" min="0" max="190" step="1" value="40">
     </div>
   </div>
 
@@ -110,12 +110,12 @@
     <div class="card green">
       <div class="card-label">Expected Load Factor</div>
       <div class="card-value" id="stat-loadfactor">0%</div>
-      <div class="card-sub">Seats occupied / 200</div>
+      <div class="card-sub">Seats occupied / 190</div>
     </div>
     <div class="card purple">
       <div class="card-label">Marginal Revenue (n)</div>
       <div class="card-value" id="stat-marginal">$0</div>
-      <div class="card-sub">Value of seat <span id="stat-n">15</span></div>
+      <div class="card-sub">Value of seat <span id="stat-n">40</span></div>
     </div>
   </div>
 
@@ -125,107 +125,136 @@
 </div>
 
 <script>
-  const TOTAL_SEATS = 200;
+  // =========================
+  // CONSTANTS & STATE
+  // =========================
+  const TOTAL_SEATS = 190;
   
-  // App State
   let state = {
-    meanBiz: 25,
+    meanBiz: 35,
     meanSaver: 150,
-    businessFare: 850,
-    saverFare: 200,
+    businessFare: 600,
+    saverFare: 250,
     protect: 40,
     demandScenario: 'med'
   };
 
   const demandPresets = {
-    low: { meanBiz: 15, meanSaver: 140, label: "Low Demand" },
-    med: { meanBiz: 25, meanSaver: 150, label: "Medium Demand" },
-    high: { meanBiz: 40, meanSaver: 160, label: "High Demand" }
+    low: { meanBiz: 20, meanSaver: 140, label: "Low Demand" },
+    med: { meanBiz: 35, meanSaver: 150, label: "Medium Demand" },
+    high: { meanBiz: 50, meanSaver: 160, label: "High Demand" }
   };
 
-  // Poisson PMF using log-space for numerical stability
-  function poissonLogPMF(k, lambda) {
-    if (lambda <= 0) return k === 0 ? 0 : -Infinity;
-    let logP = -lambda;
-    for (let i = 1; i <= k; i++) logP += Math.log(lambda / i);
-    return logP;
-  }
+  // =========================
+  // MATHEMATICAL HELPERS
+  // =========================
 
-  function poissonPMF(k, lambda) {
-    return Math.exp(poissonLogPMF(k, lambda));
-  }
-
-  // P(X >= n) = 1 - CDF(n-1)
+  /**
+   * P(D >= n) for D ~ Poisson(lambda)
+   */
   function probGTE(n, lambda) {
     if (n <= 0) return 1;
     let cdf = 0;
-    // For large lambda, we can start k closer to mean to save time, 
-    // but for 100-200, 0 to n is fine.
+    let p = Math.exp(-lambda);
     for (let k = 0; k < n; k++) {
-      cdf += poissonPMF(k, lambda);
+      cdf += p;
+      p *= lambda / (k + 1);
+      if (p < 1e-15 && k > lambda) break;
     }
     return Math.max(0, 1 - cdf);
   }
 
-  // Improved Expected Sold calculation using iterative PMF to avoid precision issues
-  function calculateExpectedSold(mean, capacity) {
-    if (capacity <= 0) return 0;
-    let ev = 0;
-    let p = Math.exp(-mean);
-    const limit = Math.ceil(mean + 6 * Math.sqrt(mean) + 20);
-    for (let k = 0; k <= limit; k++) {
-      ev += p * Math.min(k, capacity);
-      p *= mean / (k + 1);
-      if (p < 1e-18 && k > mean) break; 
+  /**
+   * E[min(D, U)] for D ~ Poisson(lambda)
+   * Matches Python: expected_min_poisson(lmbda, U)
+   */
+  function expectedMinPoisson(lmbda, U) {
+    if (U <= 0) return 0;
+    let p = Math.exp(-lmbda);
+    let cdf = p;
+    let ev = 0.0;
+    for (let k = 1; k <= U; k++) {
+      ev += (1.0 - cdf); // ev += P(D >= k)
+      p *= lmbda / k;
+      cdf += p;
+      if (p < 1e-15 && k > lmbda) break;
     }
     return ev;
   }
 
+  /**
+   * PMF of S = min(D, U)
+   * Returns array for s = 0..U
+   * Matches Python: pmf_min_poisson(lmbda, U)
+   */
+  function pmfMinPoisson(lmbda, U) {
+    let pmf = new Float64Array(U + 1);
+    let p = Math.exp(-lmbda);
+    pmf[0] = p;
+    let sum = p;
+
+    for (let k = 1; k < U; k++) {
+      p *= lmbda / k;
+      pmf[k] = p;
+      sum += p;
+    }
+
+    // tail mass
+    pmf[U] = Math.max(0, 1 - sum);
+
+    return pmf;
+  }
+
+  /**
+   * Core Simulation Logic
+   * Matches Python: compute_metrics(...)
+   */
   function calculateMetrics() {
-    // Period 1: Saver fares sold up to (capacity - protection)
-    // Period 2: Business fares sold into remaining seats (capacity - period 1 sales)
-    const saverCapacity = Math.max(0, TOTAL_SEATS - state.protect);
-
-    // Precompute E[min(D_biz, k)] for each possible remaining capacity k
-    const bizExpSold = new Array(TOTAL_SEATS + 1);
-    for (let k = 0; k <= TOTAL_SEATS; k++) {
-      bizExpSold[k] = calculateExpectedSold(state.meanBiz, k);
-    }
-
-    // Integrate over all possible saver demand realizations
-    // Remaining inventory is random: TOTAL_SEATS - min(D_saver, saverCapacity)
-    const saverMean = state.meanSaver;
-    const saverLimit = Math.ceil(saverMean + 6 * Math.sqrt(saverMean) + 20);
-
-    let totalRev = 0;
-    let totalSaverSold = 0;
-    let totalBizSold = 0;
-
-    let pSaver = Math.exp(-saverMean);
-    for (let s = 0; s <= saverLimit; s++) {
-      const sold = Math.min(s, saverCapacity);
-      const remaining = TOTAL_SEATS - sold;
-      const eBiz = bizExpSold[remaining];
-
-      totalRev += pSaver * (sold * state.saverFare + eBiz * state.businessFare);
-      totalSaverSold += pSaver * sold;
-      totalBizSold += pSaver * eBiz;
-
-      pSaver *= saverMean / (s + 1);
-      if (pSaver < 1e-18 && s > saverMean) break;
-    }
-
-    const loadFactor = (totalSaverSold + totalBizSold) / TOTAL_SEATS;
+    const C1 = Math.max(0, TOTAL_SEATS - state.protect);
     
-    // Marginal value calculation for the n-th seat protected
-    // If we protect seat n, we are taking it away from a potential Saver passenger in Period 1
-    // to keep it available for a potential Business passenger in Period 2.
-    // The "cost" is the Saver Fare, the "gain" is the Prob(Biz Demand >= n) * Business Fare.
+    // Performance optimization: Precompute flex expectations for Period 2
+    const flexEV = new Float64Array(TOTAL_SEATS + 1);
+    for (let k = 0; k <= TOTAL_SEATS; k++) {
+      flexEV[k] = expectedMinPoisson(state.meanBiz, k);
+    }
+
+    // --- Period 1 ---
+    const pmf_S1 = pmfMinPoisson(state.meanSaver, C1);
+    let E_S1 = 0;
+    for (let s = 0; s <= C1; s++) {
+        E_S1 += s * pmf_S1[s];
+    }
+    
+    // --- Period 2 ---
+    let E_S2 = 0;
+    for (let s = 0; s <= C1; s++) {
+        const p_s = pmf_S1[s];
+        if (p_s < 1e-15) continue;
+        
+        const remainingCapacity = TOTAL_SEATS - s;
+        // Law of Total Expectation: E[S2] = sum_{s} P(S1=s) * E[min(D2, Capacity - s)]
+        E_S2 += p_s * flexEV[remainingCapacity];
+    }
+
+    const totalRev = E_S1 * state.saverFare + E_S2 * state.businessFare;
+    const loadFactor = (E_S1 + E_S2) / TOTAL_SEATS;
+
+    // Debug block for validation (Fix 7)
+    if (state.meanSaver === 150 && state.meanBiz === 35 && state.protect === 40) {
+      console.log("Validation for Standard Case (C=190, S=150, B=35, P=40):", {
+        E_S1,
+        E_S2,
+        totalRev,
+        loadFactor
+      });
+    }
+    
+    // Marginal value for chart/feedback
     const marginalVal = probGTE(state.protect, state.meanBiz) * state.businessFare;
 
-    // Find optimal
+    // Find optimal protect via Littlewood's Rule
     let optProtect = 0;
-    for (let n = 1; n <= 120; n++) {
+    for (let n = 1; n <= TOTAL_SEATS; n++) {
       if (probGTE(n, state.meanBiz) * state.businessFare > state.saverFare) {
         optProtect = n;
       } else {
@@ -236,11 +265,15 @@
     return { totalRev, loadFactor, marginalVal, optProtect };
   }
 
+  // =========================
+  // UI & CHARTING
+  // =========================
+
   const ctx = document.getElementById('chart').getContext('2d');
   const chart = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: Array.from({length: 120}, (_, i) => i + 1),
+      labels: Array.from({length: 100}, (_, i) => i + 1),
       datasets: [{
         data: [],
         backgroundColor: [],
@@ -335,8 +368,6 @@
 
     // Feedback
     const feedbackEl = document.getElementById('feedback');
-    const diff = state.protect - metrics.optProtect;
-    
     if (state.protect === metrics.optProtect) {
       feedbackEl.className = "feedback optimal";
       feedbackEl.innerHTML = `<strong>Optimal Protection!</strong> Protecting ${state.protect} seats maximizes your expected revenue because the marginal value of seat ${state.protect} ($${metrics.marginalVal.toFixed(0)}) is just above the saver fare ($${state.saverFare}).`;
@@ -352,7 +383,7 @@
     // Chart
     const values = [];
     const colors = [];
-    const plotRange = 120;
+    const plotRange = Math.min(100, TOTAL_SEATS);
     for (let n = 1; n <= plotRange; n++) {
       const mv = probGTE(n, state.meanBiz) * state.businessFare;
       values.push(mv);
@@ -365,7 +396,9 @@
     chart.update('none');
   }
 
-  // Event Handlers
+  // =========================
+  // EVENT HANDLERS
+  // =========================
   function showTab(tabId) {
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.controls-panel').forEach(panel => panel.classList.remove('active'));
