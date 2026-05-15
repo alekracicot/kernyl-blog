@@ -96,6 +96,12 @@ Play around with the simulation below to see how booking limits and underlying d
 <iframe src="littlewood_rule_sim.html" width="100%" height="750px" style="border:none;"></iframe>
 ```
 
+If you played with the simulation, you may have noticed something counterintuitive: the booking limits that maximizes revenue almost never leads to filling the plane completely. On average, the revenue-maximizing policy leaves a handful of seats empty at departure — the expected optimal load factor sits *below* 100%.
+
+The reason is demand variability. To capture late-arriving flex passengers, the airline has to protect seats for them — but flex demand is uncertain (it averages 30, with a standard deviation of 9). Protect enough seats to cover a high-demand day and, on a typical day, some of those seats fly empty. That empty-seat cost (**spoilage**) is the price the airline pays to avoid turning away $1050 passengers (**spill**) on the days flex demand runs high. Because each protected seat trades a *certain* $400 promo fare for an *uncertain* shot at $1050, the optimizer stops protecting seats well before the cabin is full. Push the booking limit toward a 100% expected load factor and you'd be selling cheap seats the airline would rather hold back.
+
+So the answer to the interview question that opened this post is: it depends — but the optimal load factor is generally below 100%, and chasing a full plane usually means leaving revenue on the table. The vague "it depends" was the right instinct after all.
+
 ## Takeaways
 
 In this post, we wanted to introduce you to the core RM concepts: the forecasting-optimization framework, demand unconstraining, and the idea that remaining capacity has a calculable value that underpins most RM systems used in practice. We also tried to introduce some RM terminology. That said, if you work in RM, or even if you just buy airline tickets from time to time, you'll notice our example was quite simplified:
