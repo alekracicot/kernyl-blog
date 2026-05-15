@@ -23,8 +23,7 @@ The airline has already set its products (two types of fares) and prices. But it
 
 An airline's inventory is finite and perishable. The aircraft operating the Montreal to Warsaw flight has just 170 economy class seats — the airline can't add more (**finite inventory**, **inelastic supply**). And once the flight departs, every unsold seat is worthless (**perishable capacity**). This creates a tension: sell too many $400 promo fares early and you leave no room for $1050 flex passengers (high load factor, low yield). Protect too many seats for flex and you risk departing with empty seats that could have been sold at $400 (low load factor, high yield). The job of revenue management is to strike the right balance with the objective of maximizing total revenue.
 
-While airlines 
-This setup is not exclusive to airlines of course: Hotels? Events, such as Bad Bunny concerts? Car rentals? Absolutely, there's a limited number of rooms/seats/cars and once the day/night is over, no more revenue can be extracted. Online marketplaces like Walmart or Amazon? Not exactly. Razors are easy to replenish and they don't expire. While Amazon is known for sophisticated pricing research, the perishable-capacity logic at the heart of RM isn't central to their business the way it is for airlines.
+This setup isn't unique to airlines: any business with limited, perishable capacity — hotels, concert venues, or car rentals — faces the same trade-off. By contrast, many online retailers can replenish stock and don't have the same perishable-capacity constraint; even though firms like Amazon use advanced pricing techniques, the perishable-capacity logic at the heart of airline RM plays a smaller role in their business.
 
 ## Airline RM systems: forecasting and optimization
 
@@ -63,7 +62,7 @@ Well, almost. What the airline is trying to forecast is **demand**, not **bookin
 
 So how do we deal with this incomplete (censored) data? Airlines call the fix **unconstraining** (sometimes detruncating): estimating how many additional customers would have purchased during the period when a product was sold out. One straightforward approach is to extrapolate from flights that weren't sold out. For example, say 32 flex tickets were sold before the fare sold out 3 days before departure. If historically 15% of flex customers book in the final 3 days, we'd estimate about 37.6 total flex customers (32 / 0.85), adding back roughly 5.6 bookings we would have expected had seats been available.
 
-There are more sophisticated unconstraining methods out there — projection detruncation and EM (expectation maximization) are common [see @weatherford2002 for a comparison] — but the key idea is the same. After applying unconstraining, the airline determines that the true demand distribution is $N(122, 25)$ for promo and $N(30, 7)$ for flex. Now — how do we use this to calculate booking limits?
+There are more sophisticated unconstraining methods out there — projection detruncation and EM (expectation maximization) are common [see @weatherford2002 for a comparison] — but the key idea is the same. After applying unconstraining, the analyst estimates true demand at roughly 122 promo customers on average (with typical day-to-day variation around 25) and about 30 flex customers on average (variation around 7). Now — how do we use this to calculate booking limits?
 
 ## Optimization
 
@@ -107,9 +106,9 @@ In this post, we wanted to introduce you to the core RM concepts: the forecastin
 
 - **Forecasting is hard.** We made it look easy. In practice, extreme variability (events, seasonality, pure randomness), complex customer choice behavior, data sparsity (especially for network carriers), and demand endogeneity make forecasting one of the most challenging parts of the RM problem.
 
-- **We completely ignored competition.** We completely ignored 
+- **We completely ignored competition.** Our model assumed demand for our flight depends only on our own fares and seat availability. In reality, passengers choose between airlines, so when a competitor cuts prices or adds capacity, some of our demand spills to them.
 
-We'll tackle these and other assumptions in future posts. In the meantime, let us know what you think and what RM topics you'd like to see covered next!
+We'll look into these assumptions in future posts. In the meantime, let us know what you think and what RM topics you'd like to see covered next!
 
 If you are looking for a comprehensive treatment of different aspects of running the airline business including revenue management, see @belobaba2015.
 
