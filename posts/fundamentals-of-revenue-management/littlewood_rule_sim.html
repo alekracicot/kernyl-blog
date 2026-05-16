@@ -8,16 +8,27 @@
   body { background: transparent; padding: 0; color: #1e293b; font-family: system-ui, -apple-system, sans-serif; }
   .container { max-width: 720px; margin: 0 auto; }
 
-  .scenario { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 20px; margin-bottom: 20px; font-size: 13px; line-height: 1.6; color: #475569; }
-  .scenario strong { color: #1e293b; }
+  .description { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 20px; margin-bottom: 20px; font-size: 14px; line-height: 1.6; color: #475569; }
+  .description strong { color: #1e293b; }
 
-  .sliders { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 20px; margin-bottom: 20px; }
-  .slider-group { display: flex; flex-direction: column; gap: 6px; }
-  .slider-group label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #64748b; }
+  .control-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+  .tab-btn { flex: 1; padding: 10px; border: 1px solid #e2e8f0; background: #fff; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; color: #64748b; transition: all 0.2s; }
+  .tab-btn.active { background: #3b82f6; color: white; border-color: #2563eb; }
+
+  .controls-panel { background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin-bottom: 20px; display: none; }
+  .controls-panel.active { display: block; }
+
+  .preset-group { display: flex; gap: 8px; margin-bottom: 16px; }
+  .preset-btn { flex: 1; padding: 8px; border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; color: #475569; }
+  .preset-btn.active { border-color: #3b82f6; color: #3b82f6; background: #eff6ff; }
+
+  .slider-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+  .slider-group:last-child { margin-bottom: 0; }
+  .slider-group label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #64748b; display: flex; justify-content: space-between; }
+  .slider-group label span { color: #2563eb; }
   .slider-group input[type=range] { width: 100%; accent-color: #3b82f6; cursor: pointer; }
-  .slider-group .val { font-size: 20px; font-weight: 700; color: #2563eb; }
 
-  .chart-wrap { background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+  .chart-wrap { background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin-bottom: 20px; position: relative; }
 
   .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
   .card { border-radius: 8px; padding: 14px 16px; border: 1px solid; }
@@ -37,30 +48,52 @@
   .card.purple .card-label { color: #9333ea; }
   .card.purple .card-value { color: #9333ea; }
 
-  .feedback { font-size: 13px; padding: 12px 16px; border-radius: 8px; margin-bottom: 12px; line-height: 1.5; }
-  .feedback.optimal { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
-  .feedback.close { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
-  .feedback.far { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+  .feedback { font-size: 13px; padding: 12px 16px; border-radius: 8px; margin-bottom: 12px; line-height: 1.5; border: 1px solid; }
+  .feedback.optimal { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+  .feedback.warning { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
 
   .note { font-size: 12px; color: #94a3b8; margin-top: 4px; }
 </style>
 </head>
 <body>
 <div class="container">
-  <div class="scenario">
-    Your flight has <strong>200 seats</strong>. You sell two fares: a <strong>Saver fare at $262</strong> and a <strong>Business fare at $476</strong>. Saver demand is high enough to fill any seats not protected for business. How many seats should you protect?
+  <div class="description" id="scenarioDesc">
+    Loading scenario...
   </div>
 
-  <div class="sliders">
+  <div class="control-tabs">
+    <button class="tab-btn active" onclick="showTab('demand')">Demand Scenario</button>
+    <button class="tab-btn" onclick="showTab('fares')">Fares</button>
+    <button class="tab-btn" onclick="showTab('protection')">Protection Level</button>
+  </div>
+
+  <!-- Demand Panel -->
+  <div id="demandPanel" class="controls-panel active">
+    <div class="preset-group">
+      <button class="preset-btn" id="btn-low" onclick="setDemandPreset('low')">Low Demand</button>
+      <button class="preset-btn active" id="btn-med" onclick="setDemandPreset('med')">Medium Demand</button>
+      <button class="preset-btn" id="btn-high" onclick="setDemandPreset('high')">High Demand</button>
+    </div>
+    <p class="note" style="margin-top: -8px;">Demand scenarios are fixed presets. Use the tabs above to adjust fares or protection levels.</p>
+  </div>
+
+  <!-- Fares Panel -->
+  <div id="faresPanel" class="controls-panel">
     <div class="slider-group">
-      <label>Seats to protect for business</label>
-      <input type="range" id="protectInput" min="0" max="60" step="1" value="15">
-      <div class="val"><span id="protectVal">15</span> seats</div>
+      <label>Business Fare <span id="val-bizFare">$600</span></label>
+      <input type="range" id="input-bizFare" min="200" max="1200" step="10" value="600">
     </div>
     <div class="slider-group">
-      <label>Expected business demand (mean)</label>
-      <input type="range" id="bizDemandInput" min="5" max="60" step="1" value="25">
-      <div class="val"><span id="bizDemandVal">25</span> passengers</div>
+      <label>Saver Fare <span id="val-saverFare">$250</span></label>
+      <input type="range" id="input-saverFare" min="50" max="800" step="5" value="250">
+    </div>
+  </div>
+
+  <!-- Protection Panel -->
+  <div id="protectionPanel" class="controls-panel">
+    <div class="slider-group">
+      <label>Seats Protected for Business <span id="val-protect">40</span></label>
+      <input type="range" id="input-protect" min="0" max="190" step="1" value="40">
     </div>
   </div>
 
@@ -70,91 +103,177 @@
 
   <div class="stats">
     <div class="card blue">
-      <div class="card-label">Your expected revenue</div>
-      <div class="card-value" id="statRevenue">—</div>
-      <div class="card-sub">with <span id="statProtect">15</span> seats protected</div>
+      <div class="card-label">Expected Revenue</div>
+      <div class="card-value" id="stat-revenue">$0</div>
+      <div class="card-sub">Total flight revenue</div>
     </div>
     <div class="card green">
-      <div class="card-label">Optimal expected revenue</div>
-      <div class="card-value" id="statOptRevenue">—</div>
-      <div class="card-sub">at <span id="statOptProtect">—</span> seats protected</div>
+      <div class="card-label">Expected Load Factor</div>
+      <div class="card-value" id="stat-loadfactor">0%</div>
+      <div class="card-sub">Seats occupied / 190</div>
     </div>
     <div class="card purple">
-      <div class="card-label">Marginal value of last seat</div>
-      <div class="card-value" id="statMarginal">—</div>
-      <div class="card-sub">vs $262 saver fare</div>
+      <div class="card-label">Marginal Revenue (n)</div>
+      <div class="card-value" id="stat-marginal">$0</div>
+      <div class="card-sub">Value of seat <span id="stat-n">40</span></div>
     </div>
   </div>
 
-  <div class="feedback optimal" id="feedback"></div>
+  <div id="feedback" class="feedback"></div>
 
-  <p class="note">The chart shows the expected marginal value of protecting each additional seat: P(business demand &ge; n) &times; $476. The dashed line marks the saver fare ($262) — below it, you're better off selling the seat at the saver fare.</p>
+  <p class="note">The chart shows the expected marginal value of protecting each additional seat: <strong>P(Business Demand &ge; n) &times; Business Fare</strong>. Littlewood's Rule suggests protecting seats as long as this value exceeds the <strong>Saver Fare</strong>.</p>
 </div>
 
 <script>
+  // =========================
+  // CONSTANTS & STATE
+  // =========================
   const TOTAL_SEATS = 200;
-  const BUSINESS_FARE = 476;
-  const SAVER_FARE = 262;
-  const MAX_N = 60;
+  
+  let state = {
+    meanBiz: 35,
+    meanSaver: 150,
+    businessFare: 1050,
+    saverFare: 400,
+    protect: 40,
+    demandScenario: 'med'
+  };
 
-  // Poisson PMF using log-space for numerical stability
-  function poissonLogPMF(k, lambda) {
-    let logP = -lambda;
-    for (let i = 1; i <= k; i++) logP += Math.log(lambda / i);
-    return logP;
-  }
+  const demandPresets = {
+    low: { meanBiz: 20, meanSaver: 140, label: "Low Demand" },
+    med: { meanBiz: 30, meanSaver: 150, label: "Medium Demand" },
+    high: { meanBiz: 50, meanSaver: 150, label: "High Demand" }
+  };
 
-  function poissonPMF(k, lambda) {
-    return Math.exp(poissonLogPMF(k, lambda));
-  }
+  // =========================
+  // MATHEMATICAL HELPERS
+  // =========================
 
-  // P(X >= n) = 1 - CDF(n-1)
+  /**
+   * P(D >= n) for D ~ Poisson(lambda)
+   */
   function probGTE(n, lambda) {
     if (n <= 0) return 1;
     let cdf = 0;
-    for (let k = 0; k < n; k++) cdf += poissonPMF(k, lambda);
-    return 1 - cdf;
+    let p = Math.exp(-lambda);
+    for (let k = 0; k < n; k++) {
+      cdf += p;
+      p *= lambda / (k + 1);
+      if (p < 1e-15 && k > lambda) break;
+    }
+    return Math.max(0, 1 - cdf);
   }
 
-  // Expected marginal value of protecting seat n
-  function marginalValue(n, meanBiz) {
-    return probGTE(n, meanBiz) * BUSINESS_FARE;
+  /**
+   * E[min(D, U)] for D ~ Poisson(lambda)
+   * Matches Python: expected_min_poisson(lmbda, U)
+   */
+  function expectedMinPoisson(lmbda, U) {
+    if (U <= 0) return 0;
+    let p = Math.exp(-lmbda);
+    let cdf = p;
+    let ev = 0.0;
+    for (let k = 1; k <= U; k++) {
+      ev += (1.0 - cdf); // ev += P(D >= k)
+      p *= lmbda / k;
+      cdf += p;
+      if (p < 1e-15 && k > lmbda) break;
+    }
+    return ev;
   }
 
-  // Expected revenue under Littlewood's assumption:
-  // - Unprotected seats always sell at the saver fare
-  // - Business passengers fill protected seats up to demand
-  function expectedRevenue(protect, meanBiz) {
-    // E[min(business_demand, protect)] * business_fare
-    let bizRev = 0;
-    for (let d = 0; d <= Math.max(protect + 50, 100); d++) {
-      bizRev += poissonPMF(d, meanBiz) * Math.min(d, protect) * BUSINESS_FARE;
+  /**
+   * PMF of S = min(D, U)
+   * Returns array for s = 0..U
+   * Matches Python: pmf_min_poisson(lmbda, U)
+   */
+  function pmfMinPoisson(lmbda, U) {
+    let pmf = new Float64Array(U + 1);
+    let p = Math.exp(-lmbda);
+    pmf[0] = p;
+    let sum = p;
+
+    for (let k = 1; k < U; k++) {
+      p *= lmbda / k;
+      pmf[k] = p;
+      sum += p;
     }
 
-    // All unprotected seats sell at saver fare (Littlewood assumption)
-    const saverRev = (TOTAL_SEATS - protect) * SAVER_FARE;
+    // tail mass
+    pmf[U] = Math.max(0, 1 - sum);
 
-    return bizRev + saverRev;
+    return pmf;
   }
 
-  // Find optimal protection via Littlewood's Rule:
-  // protect seat n if marginal value > saver fare
-  function findOptimal(meanBiz) {
-    let opt = 0;
-    for (let n = 1; n <= MAX_N; n++) {
-      if (marginalValue(n, meanBiz) > SAVER_FARE) {
-        opt = n;
+  /**
+   * Core Simulation Logic
+   * Matches Python: compute_metrics(...)
+   */
+  function calculateMetrics() {
+    const C1 = Math.max(0, TOTAL_SEATS - state.protect);
+    
+    // Performance optimization: Precompute flex expectations for Period 2
+    const flexEV = new Float64Array(TOTAL_SEATS + 1);
+    for (let k = 0; k <= TOTAL_SEATS; k++) {
+      flexEV[k] = expectedMinPoisson(state.meanBiz, k);
+    }
+
+    // --- Period 1 ---
+    const pmf_S1 = pmfMinPoisson(state.meanSaver, C1);
+    let E_S1 = 0;
+    for (let s = 0; s <= C1; s++) {
+        E_S1 += s * pmf_S1[s];
+    }
+    
+    // --- Period 2 ---
+    let E_S2 = 0;
+    for (let s = 0; s <= C1; s++) {
+        const p_s = pmf_S1[s];
+        if (p_s < 1e-15) continue;
+        
+        const remainingCapacity = TOTAL_SEATS - s;
+        // Law of Total Expectation: E[S2] = sum_{s} P(S1=s) * E[min(D2, Capacity - s)]
+        E_S2 += p_s * flexEV[remainingCapacity];
+    }
+
+    const totalRev = E_S1 * state.saverFare + E_S2 * state.businessFare;
+    const loadFactor = (E_S1 + E_S2) / TOTAL_SEATS;
+
+    // Debug block for validation (Fix 7)
+    if (state.meanSaver === 150 && state.meanBiz === 35 && state.protect === 40) {
+      console.log("Validation for Standard Case (C=190, S=150, B=35, P=40):", {
+        E_S1,
+        E_S2,
+        totalRev,
+        loadFactor
+      });
+    }
+    
+    // Marginal value for chart/feedback
+    const marginalVal = probGTE(state.protect, state.meanBiz) * state.businessFare;
+
+    // Find optimal protect via Littlewood's Rule
+    let optProtect = 0;
+    for (let n = 1; n <= TOTAL_SEATS; n++) {
+      if (probGTE(n, state.meanBiz) * state.businessFare > state.saverFare) {
+        optProtect = n;
       } else {
         break;
       }
     }
-    return opt;
+
+    return { totalRev, loadFactor, marginalVal, optProtect };
   }
 
-  const chart = new Chart(document.getElementById("chart").getContext("2d"), {
-    type: "bar",
+  // =========================
+  // UI & CHARTING
+  // =========================
+
+  const ctx = document.getElementById('chart').getContext('2d');
+  const chart = new Chart(ctx, {
+    type: 'bar',
     data: {
-      labels: [],
+      labels: Array.from({length: 100}, (_, i) => i + 1),
       datasets: [{
         data: [],
         backgroundColor: [],
@@ -164,7 +283,9 @@
     },
     options: {
       responsive: true,
-      animation: { duration: 150 },
+      maintainAspectRatio: true,
+      aspectRatio: 2.2,
+      animation: { duration: 200 },
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -172,11 +293,10 @@
             title: items => `Seat ${items[0].label}`,
             label: item => {
               const n = parseInt(item.label);
-              const meanBiz = parseInt(document.getElementById("bizDemandInput").value);
-              const prob = probGTE(n, meanBiz);
+              const prob = probGTE(n, state.meanBiz);
               return [
-                `P(demand ≥ ${n}): ${(prob * 100).toFixed(1)}%`,
-                `Expected marginal value: $${item.raw.toFixed(2)}`
+                `P(Demand ≥ ${n}): ${(prob * 100).toFixed(1)}%`,
+                `Marginal Value: $${item.raw.toFixed(2)}`
               ];
             }
           }
@@ -184,22 +304,23 @@
       },
       scales: {
         x: {
-          title: { display: true, text: "Seat number (n) protected for business", color: "#64748b", font: { size: 12 } },
+          title: { display: true, text: "Seat number (n) protected for business", font: { size: 10 } },
           grid: { display: false },
-          ticks: { maxTicksLimit: 12, color: "#94a3b8" }
+          ticks: { maxTicksLimit: 15, font: { size: 10 } }
         },
         y: {
-          title: { display: true, text: "Expected marginal value ($)", color: "#64748b", font: { size: 12 } },
-          ticks: { callback: v => `$${v}`, color: "#94a3b8" },
-          grid: { color: "#f1f5f9" }
+          title: { display: true, text: "Exp. Marginal Value ($)", font: { size: 10 } },
+          ticks: { callback: v => `$${v}`, font: { size: 10 } },
+          grid: { color: '#f1f5f9' },
+          max: 1200
         }
       }
     },
     plugins: [{
-      id: "thresholdLine",
+      id: 'thresholdLine',
       afterDraw(c) {
         const { ctx, chartArea: { left, right }, scales: { y } } = c;
-        const yPos = y.getPixelForValue(SAVER_FARE);
+        const yPos = y.getPixelForValue(state.saverFare);
         ctx.save();
         ctx.beginPath();
         ctx.moveTo(left, yPos);
@@ -208,69 +329,112 @@
         ctx.lineWidth = 2;
         ctx.setLineDash([6, 4]);
         ctx.stroke();
-        ctx.setLineDash([]);
+        ctx.restore();
+        
+        ctx.save();
         ctx.fillStyle = "#d94a6e";
-        ctx.font = "11px system-ui";
+        ctx.font = "bold 10px system-ui";
         ctx.textAlign = "right";
-        ctx.fillText(`Saver fare — $${SAVER_FARE}`, right, yPos - 6);
+        ctx.fillText(`Saver Fare: $${state.saverFare}`, right, yPos - 6);
         ctx.restore();
       }
     }]
   });
 
-  function update() {
-    const protect = parseInt(document.getElementById("protectInput").value);
-    const meanBiz = parseInt(document.getElementById("bizDemandInput").value);
+  function updateUI() {
+    const metrics = calculateMetrics();
 
-    document.getElementById("protectVal").textContent = protect;
-    document.getElementById("bizDemandVal").textContent = meanBiz;
-    document.getElementById("statProtect").textContent = protect;
+    // Description
+    document.getElementById('scenarioDesc').innerHTML = `
+      Your flight has <strong>${TOTAL_SEATS} seats</strong>. 
+      In this <strong>${demandPresets[state.demandScenario]?.label || 'Custom'}</strong> scenario, 
+      expected business demand is <strong>${state.meanBiz}</strong>. 
+      You sell Business fares at <strong>$${state.businessFare}</strong> and Saver fares at <strong>$${state.saverFare}</strong>.
+    `;
 
-    // Recompute chart data for current mean
-    const seats = [], values = [];
-    for (let n = 1; n <= MAX_N; n++) {
-      seats.push(n);
-      values.push(parseFloat(marginalValue(n, meanBiz).toFixed(2)));
+    // Sliders & Values
+    document.getElementById('val-bizFare').textContent = `$${state.businessFare}`;
+    document.getElementById('input-bizFare').value = state.businessFare;
+    document.getElementById('val-saverFare').textContent = `$${state.saverFare}`;
+    document.getElementById('input-saverFare').value = state.saverFare;
+    document.getElementById('val-protect').textContent = state.protect;
+    document.getElementById('input-protect').value = state.protect;
+
+    // Stats
+    document.getElementById('stat-revenue').textContent = `$${Math.round(metrics.totalRev).toLocaleString()}`;
+    document.getElementById('stat-loadfactor').textContent = `${(metrics.loadFactor * 100).toFixed(1)}%`;
+    document.getElementById('stat-marginal').textContent = `$${metrics.marginalVal.toFixed(0)}`;
+    document.getElementById('stat-n').textContent = state.protect;
+
+    // Feedback
+    const feedbackEl = document.getElementById('feedback');
+    if (state.protect === metrics.optProtect) {
+      feedbackEl.className = "feedback optimal";
+      feedbackEl.innerHTML = `<strong>Optimal Protection!</strong> Protecting ${state.protect} seats maximizes your expected revenue because the marginal value of seat ${state.protect} ($${metrics.marginalVal.toFixed(0)}) is just above the saver fare ($${state.saverFare}).`;
+    } else if (state.protect > metrics.optProtect) {
+      feedbackEl.className = "feedback warning";
+      feedbackEl.innerHTML = `<strong>Protecting too many seats.</strong> The marginal value of seat ${state.protect} ($${metrics.marginalVal.toFixed(0)}) is <em>lower</em> than the $${state.saverFare} you could get from a Saver fare. Note how load factor drops as you "waste" seats waiting for business demand that might not show.`;
+    } else {
+      feedbackEl.className = "feedback warning";
+      const nextSeatVal = probGTE(state.protect + 1, state.meanBiz) * state.businessFare;
+      feedbackEl.innerHTML = `<strong>Protecting too few seats.</strong> You're selling seat ${state.protect + 1} for $${state.saverFare}, but it has an expected value of $${nextSeatVal.toFixed(0)} if reserved for Business. You're filling the plane, but with the "wrong" low-value passengers.`;
     }
 
-    // Color bars: blue if protected, gray if not
-    const colors = values.map((_, i) => i < protect ? "#3b82f6" : "#cbd5e1");
-
-    chart.data.labels = seats;
+    // Chart
+    const values = [];
+    const colors = [];
+    const plotRange = Math.min(100, TOTAL_SEATS);
+    for (let n = 1; n <= plotRange; n++) {
+      const mv = probGTE(n, state.meanBiz) * state.businessFare;
+      values.push(mv);
+      colors.push(n <= state.protect ? '#3b82f6' : '#cbd5e1');
+    }
+    chart.data.labels = Array.from({length: plotRange}, (_, i) => i + 1);
     chart.data.datasets[0].data = values;
     chart.data.datasets[0].backgroundColor = colors;
-    chart.update();
-
-    const optimalProtect = findOptimal(meanBiz);
-    const rev = expectedRevenue(protect, meanBiz);
-    const optRev = expectedRevenue(optimalProtect, meanBiz);
-    const mv = protect > 0 ? marginalValue(protect, meanBiz) : marginalValue(1, meanBiz);
-    const diff = optRev - rev;
-
-    document.getElementById("statRevenue").textContent = "$" + Math.round(rev).toLocaleString();
-    document.getElementById("statOptRevenue").textContent = "$" + Math.round(optRev).toLocaleString();
-    document.getElementById("statOptProtect").textContent = optimalProtect;
-    document.getElementById("statMarginal").textContent = "$" + mv.toFixed(0);
-
-    const feedbackEl = document.getElementById("feedback");
-    if (protect === optimalProtect) {
-      feedbackEl.className = "feedback optimal";
-      feedbackEl.innerHTML = `<strong>Optimal!</strong> You're protecting exactly the right number of seats. The marginal value of seat ${protect} ($${mv.toFixed(0)}) is just above the saver fare.`;
-    } else if (Math.abs(protect - optimalProtect) <= 3) {
-      feedbackEl.className = "feedback close";
-      feedbackEl.innerHTML = `<strong>Close!</strong> You're leaving ~$${Math.round(diff).toLocaleString()} on the table. The optimal protection level is ${optimalProtect} seats.`;
-    } else if (protect < optimalProtect) {
-      feedbackEl.className = "feedback far";
-      feedbackEl.innerHTML = `<strong>Too few seats protected.</strong> You're giving up ~$${Math.round(diff).toLocaleString()} in expected revenue by selling too many seats at the saver fare. Try protecting ${optimalProtect} seats.`;
-    } else {
-      feedbackEl.className = "feedback far";
-      feedbackEl.innerHTML = `<strong>Too many seats protected.</strong> You're leaving ~$${Math.round(diff).toLocaleString()} on the table — some of those protected seats will likely go empty. Try protecting ${optimalProtect} seats.`;
-    }
+    chart.scales.y.max = Math.max(1200, state.businessFare + 100);
+    chart.update('none');
   }
 
-  document.getElementById("protectInput").addEventListener("input", update);
-  document.getElementById("bizDemandInput").addEventListener("input", update);
-  update();
+  // =========================
+  // EVENT HANDLERS
+  // =========================
+  function showTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.controls-panel').forEach(panel => panel.classList.remove('active'));
+    
+    const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.textContent.toLowerCase().includes(tabId));
+    if (activeBtn) activeBtn.classList.add('active');
+    document.getElementById(tabId + 'Panel').classList.add('active');
+  }
+
+  function setDemandPreset(preset) {
+    state.demandScenario = preset;
+    state.meanBiz = demandPresets[preset].meanBiz;
+    state.meanSaver = demandPresets[preset].meanSaver;
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.id === `btn-${preset}`);
+    });
+    updateUI();
+  }
+
+  document.getElementById('input-bizFare').addEventListener('input', (e) => {
+    state.businessFare = parseInt(e.target.value);
+    updateUI();
+  });
+
+  document.getElementById('input-saverFare').addEventListener('input', (e) => {
+    state.saverFare = parseInt(e.target.value);
+    updateUI();
+  });
+
+  document.getElementById('input-protect').addEventListener('input', (e) => {
+    state.protect = parseInt(e.target.value);
+    updateUI();
+  });
+
+  // Init
+  updateUI();
 </script>
 </body>
 </html>

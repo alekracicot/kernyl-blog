@@ -10,7 +10,147 @@
 <atom:link href="https://www.kernyl.io/index.xml" rel="self" type="application/rss+xml"/>
 <description>Exploring the theory and practice of dynamic pricing</description>
 <generator>quarto-1.8.27</generator>
-<lastBuildDate>Fri, 03 Apr 2026 23:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sun, 05 Apr 2026 23:00:00 GMT</lastBuildDate>
+<item>
+  <title>Revenue Management 101: Introduction to Forecasting and Optimization</title>
+  <dc:creator>Bazyli Szymański &amp; Alek Racicot</dc:creator>
+  <link>https://www.kernyl.io/posts/fundamentals-of-revenue-management/</link>
+  <description><![CDATA[ 
+
+
+
+
+<p>What is the optimal load factor for an airline across the entire year? A friend recently got asked that exact question during a job interview for an airline revenue management department. Personally, I would have probably given a vague answer on how “it depends” on many factors (and probably would have flunked the interview by being so vague)<sup>1</sup>. But the interview question made me think about the common preconception around how airlines should always target to sell 100% of their seats. In this post, I’d like to introduce you to foundations of revenue management (RM), and show how from a revenue maximization perspective, making sure we sell all seats every time is not a good idea.</p>
+<p>To see how RM works, let’s walk through a simple example. Consider an airline operating a single daily flight between Montreal (YUL) and Warsaw (WAW)<sup>2</sup> that sells two types of fares: a bare-bones non-refundable <strong>promo</strong> fare at $400, and a fully refundable <strong>flex</strong> fare at $1050. To prevent business/corporate customers from buying the cheaper promo fare, the airline makes it available only until 30 days before departure (an advance purchase restriction). The assumption (made by the pricing department) is that business customers have a higher willingness to pay and tend to book closer to departure. Both fares sell the same economy class seats, making this a form of third-degree price discrimination.</p>
+<p>The airline has already set its products (two types of fares) and prices. But it has one more lever to pull: <strong>managing inventory</strong>. When should it stop selling the promo fare? How many seats should it protect for late-arriving business passengers willing to pay $1050?</p>
+<section id="why-managing-inventory-matters" class="level2">
+<h2 class="anchored" data-anchor-id="why-managing-inventory-matters">Why managing inventory matters</h2>
+<p>An airline’s inventory is finite and perishable. The aircraft operating the Montreal to Warsaw flight has just 170 economy class seats — the airline can’t add more (<strong>finite inventory</strong>, <strong>inelastic supply</strong>). And once the flight departs, every unsold seat is worthless (<strong>perishable capacity</strong>). This creates a tension: sell too many $400 promo fares early and you leave no room for $1050 flex passengers (high load factor, low yield). Protect too many seats for flex and you risk departing with empty seats that could have been sold at $400 (low load factor, high yield). The job of revenue management is to strike the right balance with the objective of maximizing total revenue.</p>
+<p>This setup isn’t unique to airlines: any business with limited, perishable capacity — hotels, concert venues, or car rentals — faces the same trade-off. By contrast, many online retailers can replenish stock and don’t have the same perishable-capacity constraint; even though firms like Amazon use advanced pricing techniques, the perishable-capacity logic at the heart of airline RM plays a smaller role in their business.</p>
+</section>
+<section id="airline-rm-systems-forecasting-and-optimization" class="level2">
+<h2 class="anchored" data-anchor-id="airline-rm-systems-forecasting-and-optimization">Airline RM systems: forecasting and optimization</h2>
+<p>Most revenue management systems used by airlines today break the problem into two steps: forecasting and optimization.</p>
+<ul>
+<li><p>The <strong>forecaster</strong> uses historical data (such as past bookings) to estimate how much demand there will be for each product — e.g., promo and flex fares between Montreal and Warsaw — on each upcoming flight.</p></li>
+<li><p>The <strong>optimizer</strong> takes that demand forecast and calculates booking limits which are then used to quote a fare to a customer in response to a booking request<sup>3</sup>. The optimizer intends to maximize revenue, under the assumption that the forecast is correct.</p></li>
+</ul>
+<p>This simple framework is depicted in the figure below.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-rm-loop" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-rm-loop-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-rm-loop">flowchart LR
+    F[Demand&lt;br/&gt;Forecaster] --&gt;|demand forecast| O[Optimizer]
+    O --&gt;|booking limits&lt;br/&gt;/ prices| Q[Pricing Engine]
+    Q --&gt;|fare quotes| B[Passenger&lt;br/&gt;Bookings]
+    B --&gt;|historical&lt;br/&gt;bookings| F
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rm-loop-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: The revenue management feedback loop.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Beyond the basics
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Over the past 50+ years of RM research and practice, both forecasting and optimization techniques have seen major advances — each with a significant impact on airline revenues. More recently, researchers have started moving beyond the forecast-then-optimize framework entirely, exploring RM systems that learn pricing policies directly from data using reinforcement learning or specialized neural network architectures. We’ll cover those approaches in future posts — for now, let’s focus on the foundations, which are still very much relevant today.</p>
+<p>Real-world airlines also don’t manage a single flight in isolation. A network carrier like Delta, Air Canada, or LOT Polish needs to forecast and optimize across connecting itineraries — a much harder problem that we’ll tackle separately.</p>
+</div>
+</div>
+</section>
+<section id="forecasting" class="level2">
+<h2 class="anchored" data-anchor-id="forecasting">Forecasting</h2>
+<p>Let’s get our hands dirty by building a simple demand forecast for our promo and flex fares. We’ll assume that demand for upcoming flights on a given day of the week follows the same pattern as the past year of flights on that same day. The graph below shows historical bookings from the previous 52 Saturdays.</p>
+<p>We’re keeping things simple here: no seasonal patterns, no special events like Christmas or the Montreal F1 Grand Prix<sup>4</sup>. The airline assumes that demand for each fare class is normally distributed, so all it needs to estimate are the mean and standard deviation (these are the two parameters defining a normal distribution). An analyst looks at the data and quickly concludes: an average of 115 promo bookings (std. dev. = 20) and 30 flex bookings (std. dev. = 9). In other words, promo demand <img src="https://latex.codecogs.com/png.latex?%5Csim%20N(115,%2020)"> and flex demand <img src="https://latex.codecogs.com/png.latex?%5Csim%20N(30,%209)">. Makes sense, right?</p>
+<p>Well, almost. What the airline is trying to forecast is <strong>demand</strong>, not <strong>bookings</strong>. The difference is subtle but important: whenever a product isn’t available for sale (say, the flight is sold out), the airline doesn’t see the customers who would have bought it. Look carefully at the graph — we never recorded more than 170 total bookings, the physical capacity of the economy cabin (we’re not overbooking just yet). In some cases, we recorded zero flex bookings — not because nobody wanted the flex fare, but because all 170 seats had already sold out in the promo fare.</p>
+<p>So how do we deal with this incomplete (censored) data? Airlines call the fix <strong>unconstraining</strong> (sometimes detruncating): estimating how many additional customers would have purchased during the period when a product was sold out. One straightforward approach is to extrapolate from flights that weren’t sold out. For example, say 32 flex tickets were sold before the fare sold out 3 days before departure. If historically 15% of flex customers book in the final 3 days, we’d estimate about 37.6 total flex customers (32 / 0.85), adding back roughly 5.6 bookings we would have expected had seats been available.</p>
+<p>There are more sophisticated unconstraining methods out there — projection detruncation and EM (expectation maximization) are common <span class="citation" data-cites="weatherford2002">(see <strong>weatherford2002?</strong> for a comparison)</span> — but the key idea is the same. After applying unconstraining, the analyst estimates true demand at roughly 122 promo customers on average (with typical day-to-day variation around 25) and about 30 flex customers on average (variation around 7). Now — how do we use this to calculate booking limits?</p>
+</section>
+<section id="optimization" class="level2">
+<h2 class="anchored" data-anchor-id="optimization">Optimization</h2>
+<p>The airline knows there are, on average, 30 flex customers per flight. How many seats should it protect for them? When should it stop accepting promo bookings in anticipation of those late-arriving, higher-paying passengers?</p>
+<p>Let’s build intuition with two scenarios.</p>
+<p><strong>Scenario 1:</strong> The airline has already sold 169 out of 170 seats in the promo fare, 35 days before departure. With an average of 30 flex bookings still expected, you’re essentially certain to sell that last seat at $1050. Its expected value is very close to $1050 — clearly, you should not give it away for $400.</p>
+<p><strong>Scenario 2:</strong> 140 seats are sold, 30 remain. Will all 30 sell at the flex fare? Our forecast says we sell 30 flex tickets on average, so we’ll fill at least 30 about half the time. The expected value of that last protected seat is roughly 1/2 <img src="https://latex.codecogs.com/png.latex?%5Ctimes"> $1050 = $525 — still above $400. We should protect at least 30 seats.</p>
+<p>More generally, we can compute the expected value of the <img src="https://latex.codecogs.com/png.latex?n">-th seat protected for the flex fare. The optimal protection level is the largest <img src="https://latex.codecogs.com/png.latex?n"> where the expected revenue from selling that seat at the flex fare still exceeds the promo fare price:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%20%5Cmathbb%7BP%7D(D_%7Bflex%7D%20%5Cgeq%20n)%20%5Ctimes%20p_%7Bflex%7D%20%5Cgeq%20p_%7Bpromo%7D%20"></p>
+<p>Based on our forecast, we should protect <strong>32 seats</strong>. The probability of selling at least 32 flex tickets is 38.8%, giving an expected value of $407 — just above the $400 promo fare. Protecting a 33rd seat drops to 33.4% probability of selling it and an expected value of $351 — below $400, so it’s not worth it. Those 32 protected seats translate to a booking limit of 138 for the promo fare.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Littlewood’s rule
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>This approach to two-fare-class optimization is known as <strong>Littlewood’s Rule</strong> <span class="citation" data-cites="littlewood1972">(Littlewood 1972)</span>, developed by Ken Littlewood at BOAC (the precursor to British Airways) in 1972.</p>
+</div>
+</div>
+<p>Airline booking limits are typically <strong>nested</strong>: any seat allocated to the cheaper class can also be sold in the more expensive class. So the flex fare has a booking limit of 170 (the full plane), in case some flex bookings arrive early.</p>
+</section>
+<section id="whats-the-optimal-load-factor" class="level2">
+<h2 class="anchored" data-anchor-id="whats-the-optimal-load-factor">What’s the optimal load factor?</h2>
+<p>Play around with the simulation below to see how booking limits and underlying demand affect revenue and load factor — and how much of a revenue difference an RM system can make.</p>
+<iframe src="littlewood_rule_sim.html" width="100%" height="750px" style="border:none;"></iframe>
+<p>If you played with the simulation, you may have noticed something counterintuitive: the booking limits that maximizes revenue almost never leads to filling the plane completely. On average, the revenue-maximizing policy leaves a handful of seats empty at departure — the expected optimal load factor sits <em>below</em> 100%.</p>
+<p>The reason is demand variability. To capture late-arriving flex passengers, the airline has to protect seats for them — but flex demand is uncertain (it averages 30, with a standard deviation of 9). Protect enough seats to cover a high-demand day and, on a typical day, some of those seats fly empty. That empty-seat cost (<strong>spoilage</strong>) is the price the airline pays to avoid turning away $1050 passengers (<strong>spill</strong>) on the days flex demand runs high. Because each protected seat trades a <em>certain</em> $400 promo fare for an <em>uncertain</em> shot at $1050, the optimizer stops protecting seats well before the cabin is full. Push the booking limit toward a 100% expected load factor and you’d be selling cheap seats the airline would rather hold back.</p>
+<p>So the answer to the interview question that opened this post is: it depends — but the optimal load factor is generally below 100%, and chasing a full plane usually means leaving revenue on the table. The vague “it depends” was the right instinct after all.</p>
+</section>
+<section id="takeaways" class="level2">
+<h2 class="anchored" data-anchor-id="takeaways">Takeaways</h2>
+<p>In this post, we wanted to introduce you to the core RM concepts: the forecasting-optimization framework, demand unconstraining, and the idea that remaining capacity has a calculable value that underpins most RM systems used in practice. We also tried to introduce some RM terminology. That said, if you work in RM, or even if you just buy airline tickets from time to time, you’ll notice our example was quite simplified:</p>
+<ul>
+<li><p><strong>Demand segments aren’t truly independent.</strong> We assumed promo and flex customers are completely separate groups. In practice, some leisure travelers will buy the flex fare when promo sells out, and some business travelers will buy down to the promo fare if their travel policy allows it.</p></li>
+<li><p><strong>Prices aren’t fixed.</strong> We only managed inventory — deciding how many seats to allocate to each fare — and took the fares themselves as given. This separation between pricing and inventory management is how many legacy airlines still operate. But the more interesting question is: what should the optimal price be at any given moment? Maybe the flex fare should cost $900, not $1050. Or perhaps both fares should adjust continuously as demand materializes?</p></li>
+<li><p><strong>Forecasting is hard.</strong> We made it look easy. In practice, extreme variability (events, seasonality, pure randomness), complex customer choice behavior, data sparsity (especially for network carriers), and demand endogeneity make forecasting one of the most challenging parts of the RM problem.</p></li>
+<li><p><strong>We completely ignored competition.</strong> Our model assumed demand for our flight depends only on our own fares and seat availability. In reality, passengers choose between airlines, so when a competitor cuts prices or adds capacity, some of our demand spills to them.</p></li>
+</ul>
+<p>We’ll look into these assumptions in future posts. In the meantime, let us know what you think and what RM topics you’d like to see covered next!</p>
+<p>If you are looking for a comprehensive treatment of different aspects of running the airline business including revenue management, see <span class="citation" data-cites="belobaba2015">(<strong>belobaba2015?</strong>)</span>.</p>
+</section>
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0">
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<div id="ref-littlewood1972" class="csl-entry">
+Littlewood, Kenneth. 1972. <span>“Forecasting and Control of Passenger Bookings.”</span> In <em>AGIFORS Symposium Proceedings</em>, 12:95–117.
+</div>
+</section>
+</div>
+
+
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>She got the job.↩︎</p></li>
+<li id="fn2"><p>Conveniently, those are the two cities where the authors of this blog are from, and at the time of writing no airline operates this route.↩︎</p></li>
+<li id="fn3"><p>More generally, the optimizer calculates outputs that can be used to determine fare quotes when a customer makes a booking request. Modern RM optimizers generate bid prices↩︎</p></li>
+<li id="fn4"><p>Montreal hosts the Canada Grand Prix Formula 1 race each year, which causes a significant demand spike. If you happen to visit Montreal at some other time, make sure to ride on the F1 track with a cityshare bike: it’s free!↩︎</p></li>
+</ol>
+</section></div> ]]></description>
+  <category>Revenue Management</category>
+  <category>Fundamentals</category>
+  <guid>https://www.kernyl.io/posts/fundamentals-of-revenue-management/</guid>
+  <pubDate>Sun, 05 Apr 2026 23:00:00 GMT</pubDate>
+  <media:content url="https://www.kernyl.io/posts/fundamentals-of-revenue-management/thumbnail.jpg" medium="image" type="image/jpeg"/>
+</item>
 <item>
   <title>Why Should Airlines Care About Experimentation?</title>
   <dc:creator>Alek Racicot</dc:creator>
@@ -24,8 +164,8 @@
 <h2 class="anchored" data-anchor-id="the-case-for-experimentation-in-the-airline-industry">The case for experimentation in the airline industry</h2>
 <p>Airlines are known to be low-margin businesses, yet they generate enormous revenues. Take Delta Air Lines as an example: in FY2025, its total operating revenue was around $63 billion, with approximately $52 billion coming from passenger ticket sales (<a href="https://ir.delta.com/news/news-details/2026/Delta-Air-Lines-Announces-December-Quarter-and-Full-Year-2025-Financial-Results/default.aspx">source</a>).</p>
 <p>This scale is what makes revenue management (RM) so valuable: very small improvements in pricing can translate into large financial gains. For Delta, a <strong>1% improvement</strong> in ticket pricing capabilities would add roughly <strong>$520 million</strong> to their bottom line. As a result, pricing analysts, revenue managers, operations researchers, and countless other professionals spend a considerable amount of time trying to incrementally improve their systems, processes, and ways of working. These improvements are numerous and diversified, touching pricing, product, revenue management systems, overbooking levels, competitor response strategies, and more.</p>
-<p>However, it’s not always easy to know whether a change <strong>actually resulted in a positive outcome</strong>. Consider an airline that decides to raise fares during a fuel crisis. How should they measure whether the change was successful? They could compare against last year, but the market dynamics have changed. There probably wasn’t the same fuel crisis last year, and the competitive landscape and customer expectations may have shifted as well.</p>
-<p>They could track daily revenue and look at what changed before and after the fare increase, but this isn’t ideal either. You can’t simply compare transactions day over day without considering the <strong>future value of remaining capacity</strong>. You might sell a seat right now for $10, but that doesn’t mean you wouldn’t have sold it closer to departure for $300. More fundamentally, when comparing before and after, you always face the question: are market conditions now similar to what they were before the change? In a highly seasonal and dynamic business like the airline industry, this is rarely the case. When you’re trying to measure very small incremental gains (less than 2%), these things matter a lot. It’s just too easy to make the wrong call, and the cost of being slightly wrong is large. This is why proper experimentation is so valuable for airlines.</p>
+<p>It’s not always easy to know whether a change <strong>actually resulted in a positive outcome</strong>. Consider an airline that decides to raise fares during a fuel crisis. How should they measure whether the change was successful? They could compare against last year, but the market dynamics have changed. The impact of the fuel crisis will not be represented in last year’s data for instance. More generaly, on a few strategic markets the competitive landscape and customer expectations may have shifted.</p>
+<p>One could track daily revenue and look at what changed before and after the fare increase, but this isn’t ideal either. You can’t simply compare transactions day over day without considering the <strong>future value of remaining capacity</strong>. You might sell a seat right now for $10, but that doesn’t mean you wouldn’t have sold it closer to departure for $300. More fundamentally, when comparing before and after, you always face the question: are market conditions now similar to what they were before the change? In a highly seasonal and dynamic business like the airline industry, this is rarely the case. When you’re trying to measure very small incremental gains (less than 2%), these things matter a lot. It’s just too easy to make the wrong call, and the cost of being slightly wrong is large. This is why proper experimentation is so valuable for airlines.</p>
 </section>
 <section id="online-experimentation-is-not-so-straightforward-in-revenue-management" class="level2">
 <h2 class="anchored" data-anchor-id="online-experimentation-is-not-so-straightforward-in-revenue-management">Online experimentation is not so straightforward in revenue management</h2>
@@ -57,11 +197,11 @@ Figure&nbsp;1: Example t-test for an online experiment
 </figcaption>
 </figure>
 </div>
-<p>I’m skipping over a lot of the technicalities here. There are sophisticated statistical models in place at these companies to run experiments faster, in parallel etc. The point I am trying to make is that these experiments are, at first glance, well behaved. It’s easy to randomly assign users to a test or control group. Users don’t affect each other’s outcomes. You can typically collect a large amount of data quickly, which lets you make confident estimates.</p>
+<p>I’m skipping over a lot of the technicalities here. There are sophisticated statistical models in place at these companies to run experiments faster, in parallel etc. The point I am trying to make is that this experiment setup is realatively well behaved compared to it’s RM counterpart. It’s <strong>easy to randomly assign users to a test or control group. Users don’t affect each other’s outcomes. You can typically collect a large amount of data quickly</strong>, which lets you make confident estimates.</p>
 <section id="the-shared-inventory-problem" class="level3">
 <h3 class="anchored" data-anchor-id="the-shared-inventory-problem">The shared inventory problem</h3>
-<p>Now contrast this with our pricing analyst who wants to see if raising fares will help the airline weather a fuel crisis. Unlike the online experiment, the analyst cannot simply show different prices to customers looking at the same itinerary through the same channel. This isn’t a limitation of airline distribution systems. It’s that such a test wouldn’t make sense. In an RM world, the price that one customer sees is affected by the actions of every customer who came before them.</p>
-<p>To see why, consider the two fare ladders below. The control group keeps the airline’s current pricing while the test group doubles the fares at every level. Both structures share the same authorization units (AU), which represent the cumulative number of seats the airline is willing to sell at or below each fare.</p>
+<p>Now contrast this with our pricing analyst who wants to see if raising fares will help the airline weather a fuel crisis. Unlike the online experiment, the analyst cannot simply show different prices to customers looking at the same itinerary through the same channel. This isn’t a limitation of airline distribution systems. It’s that <strong>such a test wouldn’t make sense</strong>. In an RM world, the price that one customer sees is affected by the actions of every customer who came before them.</p>
+<p>To see why, consider the two fare ladders below. The control group keeps the airline’s current pricing while the test group doubles the fares at every level. Both structures share the same authorization units (AU), which represent the cumulative number of seats the airline is willing to sell at above or each fare.</p>
 <div id="fig-fare-ladder" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-fare-ladder-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -73,12 +213,12 @@ Figure&nbsp;2: Fare ladder comparison between control and test groups. Both shar
 </figure>
 </div>
 <p>Now imagine you want to compare these two structures on the same flight. As customers visit the booking site, you flip a coin: heads, they see the control fares; tails, the test fares. The problem is that both groups share the same seat inventory.</p>
-<p>Say that after some time, 42 customers who saw the control fares and 18 who saw the test fares have purchased seats, filling all 60 seats available at the lowest price tier. The next fare up is now $500 under the control structure and $1,000 under the test structure. A new customer assigned to the test group sees $1,000, but <strong>that’s not the price they would have seen if all prior customers had also been on the test fares</strong>, because the inventory would have been consumed differently. Similarly, control customers near the end likely enjoyed lower prices than they would have if the airline had been running only the control fares all along, because some customers who saw the test fares and decide not to book would like have made a different choice had they seen the control fares.</p>
+<p>Say that after some time, 42 customers who saw the control fares and 18 who saw the test fares have purchased seats, filling all 60 seats available at the lowest price tier. The next fare up is now $500 under the control structure and $1,000 under the test structure. A new customer assigned to the test group sees $1,000, but <strong>that’s not the price they would have seen if all prior customers had also been on the test fares</strong>, because the inventory would have been consumed differently. Similarly, control customers near the end likely enjoyed lower prices than they would have if the airline had been running only the control fares all along, because some customers who saw the test fares and decide not to book would likely have made a different choice had they seen the control fares.</p>
 <p>In short, control and test customers affect each other through the shared inventory, hence this test is biased! This means that the randomization strategy needs to be done at a more aggregate level, for example by assigning entire flights to either the test or control group. This effectively reduces the sample size for airlines, which makes it harder to detect small differences in performance. It also means that the test and control groups are more likely to differ in their characteristics, which can bias results if not properly accounted for.</p>
 </section>
-<section id="slow-observation-collection" class="level3">
-<h3 class="anchored" data-anchor-id="slow-observation-collection">Slow observation collection</h3>
-<p>Another critical difference from the online testing world stems from the capacity constraint. If you compare the revenue of two flights departing in July under the control and test fares, measuring revenue up through March doesn’t tell you much about total revenue at departure. Cheaper fares tend to sell faster, which can mean more revenue early on but fewer seats left to sell closer to departure when fares are typically higher. To adequately compare the two pricing policies, you need to <strong>either wait until the departure of the flight</strong> to collect the observation or use a prediction to <strong>estimate the future value of remaining inventory</strong>.</p>
+<section id="the-future-value-of-remaining-inventory" class="level3">
+<h3 class="anchored" data-anchor-id="the-future-value-of-remaining-inventory">The future value of remaining inventory</h3>
+<p>There is another critical difference from the online testing world which also stems from the capacity constraint. If you compare the revenue of two flights departing in July under the control and test fares, measuring revenue up through March doesn’t tell you much about total revenue at departure. Cheaper fares tend to sell faster, which can mean more revenue early on but fewer seats left to sell closer to departure when fares are typically higher. To adequately compare the two pricing policies, you need to <strong>either wait until the departure of the flight</strong> to collect the observation or use a prediction to <strong>estimate the future value of remaining inventory</strong>.</p>
 <p>Both options introduce challenges: waiting until departure means that you can’t iterate quickly on your experiments, while using predictions introduces model risk and uncertainty into your estimates.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -95,43 +235,73 @@ Note
 </div>
 </section>
 </section>
-<section id="the-potential-outcomes-framework" class="level2">
-<h2 class="anchored" data-anchor-id="the-potential-outcomes-framework">The Potential Outcomes Framework</h2>
-<p>The core idea of the potential outcomes framework is to reframe the problem of estimating a treatment effect as a missing data problem <span class="citation" data-cites="hernan2020">(Hernán and Robins 2020)</span>. In an ideal world, we could take the same unit (in our case, a specific flight) and expose it to different treatments (pricing strategies) in parallel universes. Any difference in the results (say, total passenger revenue) would necessarily be caused by the change in pricing, since everything else stayed the same across universes.</p>
-<p>Obviously, generating alternative universes is not possible. So statisticians and econometricians use mathematical models and randomization to approximate that ideal scenario. Below, we’ll walk through the key assumptions of the potential outcomes framework and what they mean for experimentation in revenue management.</p>
-<p>Throughout this section, we’ll use the terms <strong>test</strong> (the group receiving the new treatment) and <strong>control</strong> (the group receiving the baseline or existing treatment) consistently.</p>
-<section id="sutva-stable-unit-treatment-value-assumption" class="level3">
-<h3 class="anchored" data-anchor-id="sutva-stable-unit-treatment-value-assumption">SUTVA (Stable Unit Treatment Value Assumption)</h3>
-<p>SUTVA can be broken down into two requirements:</p>
-<section id="no-interference" class="level4">
-<h4 class="anchored" data-anchor-id="no-interference">1. No interference</h4>
-<p>The first is that one <strong>unit’s outcome under a given treatment does not depend on other units’ treatment assignments</strong> <span class="citation" data-cites="hernan2020">(Hernán and Robins 2020)</span>. In RM, this shows up most clearly through capacity: every booking changes your available inventory, which changes your pricing, which affects every future customer. This means randomization needs to happen at a more aggregate level (for example, the flight level) rather than the individual customer level.</p>
-<p>But even at the flight level, interference can be an issue. If two flights from London to New York on the same day are assigned to different treatments, passengers may substitute between them. This can also happen across markets: lowering fares substantially on one route risks cannibalizing demand from substitutable flights. RM professionals typically try to separate and cluster their test and control units so that there is as little substitution and interference as possible between them.</p>
+<section id="the-framework-behind-every-test" class="level2">
+<h2 class="anchored" data-anchor-id="the-framework-behind-every-test">The framework behind every test</h2>
+<p>Let’s go back to our fare increase during the fuel crisis. You’ve decided to test whether raising fares by 20% improves revenue. You randomly assign 200 flights to keep current fares (<strong>control</strong>) and 200 flights to get the increase (<strong>test</strong>). After all flights depart, you compare average revenue per flight. Test is up 2.3%. Is this a success?</p>
+<p>It’s not a question with a simple answer. One could say that this 2.3% is only meaningful if that result is statistically significant and the test was set up correctly. But what does “Correctly” mean in this context? A good way to think about it is to say that a valid statistical test satisfies a specific set of assumptions defined by the <strong>Potential Outcomes Framework</strong> <span class="citation" data-cites="hernan2020">(Hernán and Robins 2020)</span>. This framework underpins statistical tests and understanding it allows us to critically evaluate the validity of our results.</p>
+<p>The core idea is very simple. To know whether the fare increase truly helped, you’d need to observe the same 200 flights under both the old and the new fares. Same passengers, same market conditions, same everything. The only difference between the two simulated world being the intervention that you are trying to measure (in our case a price increase). Any gap in revenue would then be purely caused by the fare change.</p>
+<p>Obviously, you can’t run the same flight twice. Randomization is our best substitute: create two groups that are similar enough that comparing them approximates this impossible parallel-universe scenario. The quality of that approximation rests on a few assumptions. Let’s walk through each one using our fare increase test.</p>
+<section id="no-interference-between-units" class="level3">
+<h3 class="anchored" data-anchor-id="no-interference-between-units">1. No interference between units</h3>
+<p>A unit’s outcome (e.g.&nbsp;revenue of a flight) must not depend on another unit treatment assignment <span class="citation" data-cites="hernan2020">(Hernán and Robins 2020)</span>.</p>
+<p>For instance, a light LGW-CDG on Monday is in the test group (higher fares). Flight LGW-CDG on Tuesday is in control (current fares). A price-sensitive customer shopping for either day sees the inflated Monday fare and books Tuesday instead. That Tuesday sale didn’t happen because the control fares were compelling. It happened because the test fares on Monday pushed the customer over.</p>
+<p>Now your control group looks better than it should, and your test group looks worse. The estimated treatment effect is biased downward. This is <strong>interference</strong>: the treatment on one unit changed the outcome on another. This is exactly the same issue we described in the shared inventory problem, but here instead of customers affecting each other through the remaining capacity, we have flights affecting each other through demand substitution.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>How RM teams mitigate interference
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Usually, to mitigate the risk of interference, RM teams separate test and control units in time and geography such that the likelihood of customers substituting between them is low. This is not a perfect solution, but it’s a practical one.</p>
+</div>
+</div>
 </section>
-<section id="no-hidden-treatment-variations" class="level4">
-<h4 class="anchored" data-anchor-id="no-hidden-treatment-variations">2. No hidden treatment variations</h4>
-<p>The second requirement is that there is only one version of each treatment, meaning every unit assigned to a given treatment receives the same treatment. This is usually less of a concern, but it can become problematic when the treatment is contextual. For example, say you want to increase overbooking thresholds for flights with very high yield. A flight might qualify for that increase either 30 days or 10 days before departure. The “dosage” of the treatment differs because some flights have more time to absorb its effects. If we don’t account for the fact that the “dosage” of the treatment varies across units, we end up with an average treatment effect that represents this mixture of different versions of the treatment, which can be missleading and hard to interpret.</p>
-</section>
+<section id="no-hidden-treatment-variations" class="level3">
+<h3 class="anchored" data-anchor-id="no-hidden-treatment-variations">2. No hidden treatment variations</h3>
+<p>Every unit assigned to a treatment must receive the <strong>same version</strong> of that treatment. This is usually less of a concern, but it matters when the treatment is contextual. Say you want to increase overbooking thresholds for flights with very high yield. A flight might qualify for that increase either 30 days or 10 days before departure. The “dosage” of the treatment differs because some flights have more time to absorb its effects. If we don’t account for this variation, we end up averaging over different versions of the treatment, which is misleading and hard to interpret.</p>
 </section>
 <section id="exchangeability" class="level3">
-<h3 class="anchored" data-anchor-id="exchangeability">Exchangeability</h3>
-<p>This is sometimes called the “randomization” assumption. It means that the group assigned to the test would have had the same average outcome as the group assigned to control, had they been swapped. In other words, <strong>treatment assignment is independent of potential outcomes</strong>. This breaks down when there is sampling bias in the randomization strategy, or when the randomization simply isn’t effective at balancing the two groups.</p>
-<p>For instance, suppose you create clusters of markets (domestic, transatlantic, Pacific, etc.) and randomly assign each cluster to a different RM system. There is no guarantee that the control and test groups would have behaved the same way under the same system. Pre-existing differences between the groups could drive the observed results. In practice, this can be examined before the test by comparing metrics of interest (load factor, yield, share of business customers, etc.) and confirming that the two groups look comparable after randomization <strong>(this is called covariate balance)</strong>.</p>
+<h3 class="anchored" data-anchor-id="exchangeability">3. Exchangeability</h3>
+<p>The test and control groups must be <strong>interchangeable</strong>: if you swapped their assignments, the outcome would stay the same. In other words, treatment assignment is independent of potential outcomes.</p>
+<p>Back to the fare increase. Imagine the randomization happened to put all summer peak flights in the test group and all off-peak flights in control. Peak flights would have earned more revenue regardless of the fare change. That 2.3% uplift you measured? Part of it (maybe all of it) is just seasonality, not pricing.</p>
+<p>In practice, you check this <strong>before</strong> the test starts. Compare pre-treatment metrics between groups: load factor, yield, booking curves, share of business customers. If the groups don’t look comparable, re-randomize.</p>
 </section>
 <section id="positivity" class="level3">
-<h3 class="anchored" data-anchor-id="positivity">Positivity</h3>
-<p>Positivity assumes that every type of unit in your experiment has a non-zero probability of receiving every version of the treatment. This matters because it limits how far you can generalize your results. For example, if you test new ancillary bundles only on your direct channel and never expose customers booking through a GDS, then your results only apply to the population of direct-channel customers. The same issue arises at the flight level when certain conditions must be met (for instance, a low booked load factor or high yield) for the treatment to activate.</p>
+<h3 class="anchored" data-anchor-id="positivity">4. Positivity</h3>
+<p>Every units in your experiment must have a non-zero chance of receiving each treatment. This constrains how far you can generalize. If you only tested the fare increase on short-haul European routes, you can’t claim the result applies to transatlantic flights. Similarly, if the fare increase only activates when booked load factor is below 50%, you’ve only learned something about low-demand flights.</p>
 </section>
 <section id="consistency" class="level3">
-<h3 class="anchored" data-anchor-id="consistency">Consistency</h3>
-<p>Consistency states that the outcome we observe is truly the result of the assigned treatment. Without it, we can’t estimate a counterfactual, because even our factual observation (the result following treatment assignment) is unreliable. This can be a problem when it’s hard to pin down what the treatment actually was. For example, if your test group experienced both the test and control prices during the booking window (say, because the treatment was switched on partway through), then the observed outcome is not the true potential outcome under the test treatment. This is known as mixed treatment bias.</p>
+<h3 class="anchored" data-anchor-id="consistency">5. Consistency</h3>
+<p>The outcome you observe must genuinely result from the assigned treatment. If a test flight experienced both old and new fares during its booking window (say, because the treatment was switched on partway through), the observed revenue is not the true outcome we would have seen under a consistent treatment (test fares for the full booking window).</p>
 </section>
+</section>
+<section id="are-you-even-measuring-the-right-thing" class="level2">
+<h2 class="anchored" data-anchor-id="are-you-even-measuring-the-right-thing">Are you even measuring the right thing?</h2>
+<p>You can nail every assumption above and still draw the wrong conclusion if you are measuring the wrong thing. Your metric needs to actually represent the business outcome you care about hence it is important to put careful attention to your <strong>Overall Evaluation Criterion (OEC)</strong>.</p>
+<p>Say that for our fare increase test, we decided to measure ticket revenue, how confident would you be a results showing a 2% uplift? You would probably be concerned that customers responded to higher fares by ditching ancillary purchases or maybe by downgrading from premium to economy. Some of these concerns can be directly addressed by measuring total revenue insead but some can’t. For example, if the fare increase erodes customer loyalty, you won’t see that in the revenue of the current flight. You would likely need to track customer lifetime value to capture that effect which may not be feasible on a short time horizon.</p>
+<p>Since the metric you choose shapes the decisions you make, it’s worth asking yourself if <strong>the metric capture the full effect I am trying to measure?</strong> You don’t want to simply track first order effect (e.g.&nbsp;ancillary revenue) if there are likely to be second order effects (e.g.&nbsp;ancillary revenue) that you can measure directly. If you can’t measure the full effect directly, then we need to make it explicity that the metric is an imperfect proxy for the true outcome you care about.</p>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>When the “right” metric optimises the wrong outcome
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Kohavi and Thomke describe an experiment at Bing where a bug degraded the relevance of search results. Revenue per search went <strong>up</strong> because users, unable to find what they needed in the organic results, clicked more on ads. If the team had used revenue per search as their OEC, they would have shipped a version of Bing that was objectively worse for users. The correct OEC needed to combine revenue with user satisfaction metrics like successful session rate to avoid shallow optimization <span class="citation" data-cites="kohavi2017">(Kohavi and Thomke 2017)</span>.</p>
+</div>
+</div>
 </section>
 <section id="wrapping-up" class="level2">
 <h2 class="anchored" data-anchor-id="wrapping-up">Wrapping up</h2>
-<p>Understanding these assumptions provides a complete toolkit for experiment design. It also highlights why A/B tests require a lot of business judgment and domain expertise to be done right.</p>
-<p>I promised myself that I would avoid getting technical in this post and that I would keep it short, but I can’t end without touching on the <strong>Overall Evaluation Criteria (OEC)</strong>. A/B tests answer the question you ask, not necessarily the one you thought you asked. It’s super important to always make sure that that your KPI’s and metrics align with your true business objectives. For example, a test for a new pricier bundle might drive a 15% spike in ancillary revenue, but if that increase comes at the expense of ticket sales, the airline could be worse offoverall. If you aren’t measuring total revenue impact, you risk adopting changes that optimize one metric while hurting the business as a whole.</p>
-<p>We are putting together an <strong>experiment checklist</strong> specifically for RM and will publish it on this website in the coming weeks.</p>
+<p>Experimentation in airlines is hard to do. We are often trying to measure a small signal on a noisy outcome, are limited by shared inventory to randomize at an aggregate level, and can very easily violate “silent” assumptions made by our statistical tests. The potential outcomes framework gives us the language to ask whether a test is actually valid before you launch it. Explicitely checking each assumption can help us avoid costly mistakes and make better decisions.</p>
+<p>In an upcoming post, we will share a checklist that we use to design experiments in RM. It’s not exhaustive, but it covers the most common failure modes. We will also discuss some of the strategies we use to mitigate these risks and how we think about trade-offs when designing experiments.</p>
 
 
 
@@ -141,91 +311,15 @@ Note
 <div id="ref-hernan2020" class="csl-entry">
 Hernán, Miguel A., and James M. Robins. 2020. <em>Causal Inference: What If</em>. Boca Raton: Chapman &amp; Hall/CRC. <a href="https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/">https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/</a>.
 </div>
+<div id="ref-kohavi2017" class="csl-entry">
+Kohavi, Ron, and Stefan Thomke. 2017. <span>“The Surprising Power of Online Experiments.”</span> <em>Harvard Business Review</em> 95 (5): 74–82. <a href="https://hbr.org/2017/09/the-surprising-power-of-online-experiments">https://hbr.org/2017/09/the-surprising-power-of-online-experiments</a>.
+</div>
 </div></section></div> ]]></description>
   <category>Revenue Management</category>
   <category>Experimentation</category>
   <guid>https://www.kernyl.io/posts/experimentation101/</guid>
   <pubDate>Fri, 03 Apr 2026 23:00:00 GMT</pubDate>
   <media:content url="https://www.kernyl.io/posts/experimentation101/thumbnail.jpg" medium="image" type="image/jpeg"/>
-</item>
-<item>
-  <title>Foundations of Revenue Management: From Deregulation to Littlewood’s Rule</title>
-  <dc:creator>Bazyli Szymański &amp; Alek Racicot</dc:creator>
-  <link>https://www.kernyl.io/posts/fundamentals-of-revenue-management/</link>
-  <description><![CDATA[ 
-
-
-
-
-<p>This post is the first in the series on fundamentals of Revenue Management, where we introduce key ideas and terminology behind what’s inside revenue management systems.</p>
-<section id="a-walk-down-the-deregulation-lane" class="level2">
-<h2 class="anchored" data-anchor-id="a-walk-down-the-deregulation-lane">A walk down the deregulation lane</h2>
-<p>The history of airline revenue management is often told through the tale of airline industry deregulation. Until the late 1970s, airlines in the US were essentially limited to offering a single fare per cabin (Economy / First class), with prices dictated by the Civil Aeronautics Board. Regardless of the airline, time to departure, or period of travel, in 1969 a customer would pay exactly $296 ($2,624 in 2026 dollars!) for a round-trip economy fare from Boston (BOS) to Los Angeles (LAX). Flying was a luxury for most, and from the perspective of this story—an inefficient way of pricing, where airlines were completely missing out on the more price-sensitive market segment, <strong>leading to lower capacity utilization and load factors</strong>. In 1978, Jimmy Carter signed the Airline Deregulation Act, which opened the doors for airlines to compete on fares.</p>
-<p>By 1979, the full economy fare for the BOS-LAX <strong>origin-destination (OD)</strong> market had risen to $476 ($2,133 in 2026, slightly less than a decade earlier when adjusted for inflation). That said, as an airline executive you now have the freedom to reduce that fare or introduce an additional price point targeting the more price-sensitive leisure customer segment. When adding this additional price point, a few critical questions arise:</p>
-<ul>
-<li>How much should the new fare cost?</li>
-<li>How many seats should we sell at that new fare?</li>
-<li>How do we prevent the cheaper fare from being purchased by business customers who could have afforded to pay the full fare?</li>
-</ul>
-<p>The first and third questions are fundamentally <strong>pricing</strong> questions. Historically, pricing has been disconnected from revenue management—a separation that remains in many legacy airlines today. The second question, however, is at the heart of revenue management: <strong>inventory control</strong>. Even with perfectly set fares and restrictions, we still need to decide how many seats to allocate to each fare class.</p>
-</section>
-<section id="littlewoods-rule" class="level2">
-<h2 class="anchored" data-anchor-id="littlewoods-rule">Littlewood’s Rule</h2>
-<p>Let’s say your pricing team decided that the Saver fare should cost $262 round-trip, and that it would only be available until 20 days before departure and require staying at the destination for at least the weekend. These restrictions effectively prevent business customers from <strong>buying down</strong> to the Saver fare. Still, we face the decision of ** how many seats to protect for the full-fare business customers** , given that we expect some to purchase within the last 20 days prior to departure.</p>
-<p>If we knew exactly how many business customers would arrive, the problem would be trivial. Given that the business fare is more expensive, if we know 15 business customers will arrive close to flight departure, we should protect exactly 15 seats for those customers. Similarly, if business customers always booked before leisure customers, we could simply sell the full fare until demand is exhausted, then sell remaining seats at the saver fare.</p>
-<p>Unfortunately, airlines face <strong>uncertain demand</strong> and have good reasons to beleive that high value customers, such as business travelers, typically book closer to departure.</p>
-<p>Luckily for us in this toy example we can leverage seminal work in airline revenue management and appy what is now know as Littlewood’s Rule <span class="citation" data-cites="littlewood1972">(Littlewood 1972)</span> to find how many seats we should protect for our business customers. The core idea it to protect seats for business customers until the expected marginal revenue from protecting an additional seat drops below the guaranteed revenue from selling the seat at the saver fare.</p>
-<div class="callout callout-style-default callout-important callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Important</span>The Key Insight
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>We protect seats for business customers until the expected marginal revenue from protecting an additional seat drops below the guaranteed revenue from selling the seat at the saver fare.</p>
-</div>
-</div>
-<p><strong>Littlewood’s Rule</strong> states: Protect seat <img src="https://latex.codecogs.com/png.latex?n"> if and only if:</p>
-<p><img src="https://latex.codecogs.com/png.latex?P(%5Ctext%7BBusiness%20demand%7D%20%5Cgeq%20n)%20%5Ctimes%20%5Ctext%7BBusiness%20Fare%7D%20%3E%20%5Ctext%7BSaver%20Fare%7D"></p>
-<p>Where <img src="https://latex.codecogs.com/png.latex?n"> is the number of seats we’re considering protecting. Rearranging:</p>
-<p><img src="https://latex.codecogs.com/png.latex?P(%5Ctext%7BBusiness%20demand%7D%20%5Cgeq%20n)%20%3E%20%5Cfrac%7B%5Ctext%7BSaver%20Fare%7D%7D%7B%5Ctext%7BBusiness%20Fare%7D%7D"></p>
-<p>In our example with a $262 saver fare and $476 business fare:</p>
-<p><img src="https://latex.codecogs.com/png.latex?P(%5Ctext%7BBusiness%20demand%7D%20%5Cgeq%20n)%20%3E%20%5Cfrac%7B262%7D%7B476%7D%20=%200.55"></p>
-<p>This means: protect seat <img src="https://latex.codecogs.com/png.latex?n"> if there’s more than a 55% chance that business demand will be high enough to sell it.</p>
-<section id="interactive-simulation" class="level3">
-<h3 class="anchored" data-anchor-id="interactive-simulation">Interactive Simulation</h3>
-<p>Now it’s your turn. The chart below shows the expected marginal value of protecting each additional seat for business class — that is, <img src="https://latex.codecogs.com/png.latex?P(%5Ctext%7BBusiness%20demand%7D%20%5Cgeq%20n)%20%5Ctimes%20%5C$476">. The dashed line marks the saver fare. Use the slider to choose how many seats you’d protect, and see how your decision affects expected revenue.</p>
-<iframe src="littlewood_rule_sim.html" width="100%" height="750px" style="border:none;"></iframe>
-</section>
-<section id="key-insights" class="level3">
-<h3 class="anchored" data-anchor-id="key-insights">Key Insights</h3>
-<p>A few things to notice as you experiment with the simulation:</p>
-<ol type="1">
-<li><p><strong>Marginal analysis</strong>: Each seat is evaluated independently. The expected value of protecting seat <img src="https://latex.codecogs.com/png.latex?n"> depends only on the probability that business demand reaches <img src="https://latex.codecogs.com/png.latex?n">.</p></li>
-<li><p><strong>The fare ratio matters</strong>: With our 55% threshold (262/476), we protect seats as long as there’s better than a 55% chance of selling them at the business fare.</p></li>
-<li><p><strong>Protecting too few seats</strong> means selling cheap seats that could have been sold at the business fare. <strong>Protecting too many</strong> means empty seats that could have been sold at the saver fare. The optimal point balances these two risks.</p></li>
-<li><p><strong>Probability-based decisions</strong>: We’re not predicting exactly how many business customers will show up—we’re making optimal decisions under uncertainty.</p></li>
-</ol>
-<p>Littlewood’s Rule <span class="citation" data-cites="littlewood1972">(1972)</span> remains one of the most elegant results in revenue management. While modern systems use more sophisticated methods (like EMSR-b for multiple fare classes and network optimization for connecting flights), the core principle of protecting inventory for higher-value customers persists throughout the field.</p>
-
-
-
-</section>
-</section>
-
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0">
-<div id="ref-littlewood1972" class="csl-entry">
-Littlewood, Kenneth. 1972. <span>“Forecasting and Control of Passenger Bookings.”</span> In <em>AGIFORS Symposium Proceedings</em>, 12:95–117.
-</div>
-</div></section></div> ]]></description>
-  <category>Revenue Management</category>
-  <category>Fundamentals</category>
-  <guid>https://www.kernyl.io/posts/fundamentals-of-revenue-management/</guid>
-  <pubDate>Tue, 17 Feb 2026 00:00:00 GMT</pubDate>
-  <media:content url="https://www.kernyl.io/posts/fundamentals-of-revenue-management/thumbnail.jpg" medium="image" type="image/jpeg"/>
 </item>
 </channel>
 </rss>
