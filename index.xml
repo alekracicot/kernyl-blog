@@ -5,12 +5,12 @@
       xmlns:dc="http://purl.org/dc/elements/1.1/" 
       version="2.0">
 <channel>
-<title>Kernyl</title>
+<title>Kernyl — Airline Revenue Management &amp; Dynamic Pricing</title>
 <link>https://www.kernyl.io/</link>
 <atom:link href="https://www.kernyl.io/index.xml" rel="self" type="application/rss+xml"/>
-<description>Exploring the theory and practice of dynamic pricing</description>
-<generator>quarto-1.8.27</generator>
-<lastBuildDate>Sun, 05 Apr 2026 23:00:00 GMT</lastBuildDate>
+<description>Kernyl explores revenue management, dynamic pricing, and experimentation in the airline industry. Causal inference, forecasting, optimization, and more.</description>
+<generator>quarto-1.10.18</generator>
+<lastBuildDate>Mon, 06 Apr 2026 00:00:00 GMT</lastBuildDate>
 <item>
   <title>Revenue Management 101: Introduction to Forecasting and Optimization</title>
   <dc:creator>Bazyli Szymański &amp; Alek Racicot</dc:creator>
@@ -124,11 +124,11 @@ Figure&nbsp;1: The revenue management feedback loop.
 <p>We’ll look into these assumptions in future posts. In the meantime, let us know what you think and what RM topics you’d like to see covered next!</p>
 <p>If you are looking for a comprehensive treatment of different aspects of running the airline business including revenue management, see <span class="citation" data-cites="belobaba2015">(<strong>belobaba2015?</strong>)</span>.</p>
 </section>
-<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 <section id="references" class="level2">
 <h2 class="anchored" data-anchor-id="references">References</h2>
 <div id="ref-littlewood1972" class="csl-entry">
-Littlewood, Kenneth. 1972. <span>“Forecasting and Control of Passenger Bookings.”</span> In <em>AGIFORS Symposium Proceedings</em>, 12:95–117.
+Littlewood, Kenneth. 1972. <span>“Forecasting and Control of Passenger Bookings.”</span> <em>AGIFORS Symposium Proceedings</em> 12: 95–117.
 </div>
 </section>
 </div>
@@ -148,7 +148,7 @@ Littlewood, Kenneth. 1972. <span>“Forecasting and Control of Passenger Booking
   <category>Revenue Management</category>
   <category>Fundamentals</category>
   <guid>https://www.kernyl.io/posts/fundamentals-of-revenue-management/</guid>
-  <pubDate>Sun, 05 Apr 2026 23:00:00 GMT</pubDate>
+  <pubDate>Mon, 06 Apr 2026 00:00:00 GMT</pubDate>
   <media:content url="https://www.kernyl.io/posts/fundamentals-of-revenue-management/thumbnail.jpg" medium="image" type="image/jpeg"/>
 </item>
 <item>
@@ -307,9 +307,9 @@ Note
 
 </section>
 
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0">
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-hernan2020" class="csl-entry">
-Hernán, Miguel A., and James M. Robins. 2020. <em>Causal Inference: What If</em>. Boca Raton: Chapman &amp; Hall/CRC. <a href="https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/">https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/</a>.
+Hernán, Miguel A., and James M. Robins. 2020. <em>Causal Inference: What If</em>. Chapman &amp; Hall/CRC. <a href="https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/">https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/</a>.
 </div>
 <div id="ref-kohavi2017" class="csl-entry">
 Kohavi, Ron, and Stefan Thomke. 2017. <span>“The Surprising Power of Online Experiments.”</span> <em>Harvard Business Review</em> 95 (5): 74–82. <a href="https://hbr.org/2017/09/the-surprising-power-of-online-experiments">https://hbr.org/2017/09/the-surprising-power-of-online-experiments</a>.
@@ -318,7 +318,7 @@ Kohavi, Ron, and Stefan Thomke. 2017. <span>“The Surprising Power of Online Ex
   <category>Revenue Management</category>
   <category>Experimentation</category>
   <guid>https://www.kernyl.io/posts/experimentation101/</guid>
-  <pubDate>Fri, 03 Apr 2026 23:00:00 GMT</pubDate>
+  <pubDate>Sat, 04 Apr 2026 00:00:00 GMT</pubDate>
   <media:content url="https://www.kernyl.io/posts/experimentation101/thumbnail.jpg" medium="image" type="image/jpeg"/>
 </item>
 </channel>

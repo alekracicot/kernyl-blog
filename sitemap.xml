@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://www.kernyl.io/about.html</loc>
-    <lastmod>2026-02-19T21:47:08.428Z</lastmod>
+    <loc>https://www.kernyl.io/index.html</loc>
+    <lastmod>2026-08-01T09:28:19.878Z</lastmod>
   </url>
   <url>
     <loc>https://www.kernyl.io/posts/fundamentals-of-revenue-management/index.html</loc>
-    <lastmod>2026-05-16T19:57:08.592Z</lastmod>
+    <lastmod>2026-08-01T09:28:19.883Z</lastmod>
+  </url>
+  <url>
+    <loc>https://www.kernyl.io/about.html</loc>
+    <lastmod>2026-08-01T09:28:19.874Z</lastmod>
   </url>
   <url>
     <loc>https://www.kernyl.io/posts/experimentation101/index.html</loc>
-    <lastmod>2026-05-16T19:57:08.591Z</lastmod>
-  </url>
-  <url>
-    <loc>https://www.kernyl.io/index.html</loc>
-    <lastmod>2026-02-15T14:12:23.539Z</lastmod>
+    <lastmod>2026-08-01T09:28:19.881Z</lastmod>
   </url>
 </urlset>

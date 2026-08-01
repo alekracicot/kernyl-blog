@@ -2,20 +2,27 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.8.27">
+<meta name="generator" content="quarto-1.10.18">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Alek Racicot">
 <meta name="dcterms.date" content="2026-04-04">
+<meta name="keywords" content="airline experimentation, causal inference, A/B testing, revenue management, fare ladder, shared inventory">
 <meta name="description" content="Experimentation is critical for airlines, but it’s also extremely challenging to do right. Here’s why, and the framework that helps us think about it.">
 
-<title>Why Should Airlines Care About Experimentation? – Kernyl</title>
+<title>Why Should Airlines Care About Experimentation? – Kernyl — Airline Revenue Management &amp; Dynamic Pricing</title>
 <style>
-code{white-space: pre-wrap;}
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
 span.smallcaps{font-variant: small-caps;}
-div.columns{display: flex; gap: min(4vw, 1.5em);}
-div.column{flex: auto; overflow-x: auto;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
 div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
@@ -27,7 +34,6 @@ ul.task-list li input[type="checkbox"] {
 div.csl-bib-body { }
 div.csl-entry {
   clear: both;
-  margin-bottom: 0em;
 }
 .hanging-indent div.csl-entry {
   margin-left:2em;
@@ -56,15 +62,14 @@ div.csl-indent {
 <link href="../../favicon.svg" rel="icon" type="image/svg+xml">
 <script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="../../site_libs/quarto-html/popper.min.js"></script>
 <script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-8b4baf804e461d9b72633f0de59a0cac.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-bb62276ab45c84d9efd712f51ff97b5a.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-9ebf109a3be8bdd5f6ff8120de8d6dad.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-19c4592ffcae3d43ce2c03b52a5b73a2.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -104,6 +109,14 @@ gtag('config', 'G-RCQGEPG5XP', { 'anonymize_ip': true});
 
 
 <link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="Why Should Airlines Care About Experimentation? – Kernyl — Airline Revenue Management &amp; Dynamic Pricing">
+<meta property="og:description" content="Experimentation is critical for airlines, but it’s also extremely challenging to do right. Here’s why, and the framework that helps us think about it.">
+<meta property="og:image" content="https://www.kernyl.io/posts/experimentation101/thumbnail.jpg">
+<meta property="og:site_name" content="Kernyl — Airline Revenue Management &amp; Dynamic Pricing">
+<meta name="twitter:title" content="Why Should Airlines Care About Experimentation? – Kernyl — Airline Revenue Management &amp; Dynamic Pricing">
+<meta name="twitter:description" content="Experimentation is critical for airlines, but it’s also extremely challenging to do right. Here’s why, and the framework that helps us think about it.">
+<meta name="twitter:image" content="https://www.kernyl.io/posts/experimentation101/thumbnail.jpg">
+<meta name="twitter:card" content="summary_large_image">
 </head>
 
 <body class="nav-fixed quarto-light">
@@ -114,7 +127,7 @@ gtag('config', 'G-RCQGEPG5XP', { 'anonymize_ip': true});
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../../index.html">
-    <span class="navbar-title">Kernyl</span>
+    <span class="navbar-title">Kernyl — Airline Revenue Management &amp; Dynamic Pricing</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -213,10 +226,22 @@ gtag('config', 'G-RCQGEPG5XP', { 'anonymize_ip': true});
     </div>
   </div>
   
+    <div>
+    <div class="quarto-title-meta-heading">Modified</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date-modified">April 4, 2026</p>
+    </div>
+  </div>
     
   </div>
   
 
+<div>
+  <div class="keywords">
+    <div class="block-title">Keywords</div>
+    <p>airline experimentation, causal inference, A/B testing, revenue management, fare ladder, shared inventory</p>
+  </div>
+</div>
 
 </header>
 
@@ -368,9 +393,9 @@ Note
 
 </section>
 
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-hernan2020" class="csl-entry" role="listitem">
-Hernán, Miguel A., and James M. Robins. 2020. <em>Causal Inference: What If</em>. Boca Raton: Chapman &amp; Hall/CRC. <a href="https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/">https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/</a>.
+Hernán, Miguel A., and James M. Robins. 2020. <em>Causal Inference: What If</em>. Chapman &amp; Hall/CRC. <a href="https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/">https://www.hsph.harvard.edu/miguel-hernan/causal-inference-book/</a>.
 </div>
 <div id="ref-kohavi2017" class="csl-entry" role="listitem">
 Kohavi, Ron, and Stefan Thomke. 2017. <span>“The Surprising Power of Online Experiments.”</span> <em>Harvard Business Review</em> 95 (5): 74–82. <a href="https://hbr.org/2017/09/the-surprising-power-of-online-experiments">https://hbr.org/2017/09/the-surprising-power-of-online-experiments</a>.
@@ -777,6 +802,33 @@ Kohavi, Ron, and Stefan Thomke. 2017. <span>“The Surprising Power of Online Ex
   });
   </script>
 </div> <!-- /content -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Kernyl",
+  "alternateName": "Kernyl Blog",
+  "url": "https://www.kernyl.io",
+  "description": "Deep dives into revenue management, dynamic pricing, and online experimentation for airlines, hotels, and perishable-asset industries.",
+  "publisher": {
+    "@type": "Organization",
+    "name": "Kernyl",
+    "url": "https://www.kernyl.io"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Why Should Airlines Care About Experimentation?",
+  "description": "Experimentation is critical for airlines, but it's also extremely challenging to do right. Here's why, and the framework that helps us think about it.",
+  "author": { "@type": "Person", "name": "Alek Racicot" },
+  "datePublished": "2026-04-04",
+  "image": "https://www.kernyl.io/posts/airline-experimentation-why-it-matters/thumbnail.jpg",
+  "url": "https://www.kernyl.io/posts/airline-experimentation-why-it-matters/"
+}
+</script>
 
 
 

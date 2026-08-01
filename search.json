@@ -1,24 +1,10 @@
 [
   {
-    "objectID": "about.html",
-    "href": "about.html",
-    "title": "About",
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Airline Revenue Management & Dynamic Pricing Blog",
     "section": "",
-    "text": "Welcome to the exciting world of revenue management and dynamic pricing.\nWhether you’re an executive with years of practical experience in the airline business, a data scientist looking at applying your skills in the field, or just dreaming of a career in revenue management, our blog is intended to be a place to deepen your understanding of the principles behind RM. Our domain knowledge comes from working for various airlines around the world, but the principles we talk about here extend to other industries that price perishable assets, such as hotels or vacation rentals, car rentals, or events etc."
-  },
-  {
-    "objectID": "about.html#what-to-expect",
-    "href": "about.html#what-to-expect",
-    "title": "About",
-    "section": "What to Expect",
-    "text": "What to Expect\nWe have diverse interests and hope to write for an equally diverse audience. Some posts will be geared toward revenue managers, while others will be more technical in nature.\nWe’ll use categories to help you easily filter and find content that matches your interests. We’re currently building a pipeline of ideas around:\n\nFundamentals of Revenue Management (a back-to-basics series)\nExperimentation in Airlines\nPaper Reviews and Discussions\n\nThe theme and structure of this blog were inspired by Vineeth’s Digital Garden."
-  },
-  {
-    "objectID": "about.html#the-authors",
-    "href": "about.html#the-authors",
-    "title": "About",
-    "section": "The Authors",
-    "text": "The Authors\n\n\n\n\n\nAlek Racicot\nHey, I’m Alek. I hold a Master’s in Economics from McGill University and work as a data scientist on dynamic pricing algorithms in the airline industry. I’ve worked with both full-service carriers and low-cost carriers. I’m particularly passionate about causal inference and experimentation.\n LinkedIn\n\n\n\n\n\n\n\nBazyli Szymanski\nHi, I’m Bazyli. I hold a PhD in Transportation Science from MIT, where I focused on revenue management. Since then, I’ve worked in revenue management with airlines across Europe and North America. I’m a huge airline nerd and love just about everything related to travel.\n LinkedIn"
+    "text": "Revenue Management 101: Introduction to Forecasting and Optimization\n\n\n\nRevenue Management\n\nFundamentals\n\n\n\nIn this post, we introduce basic principles of airline RM systems, from Littlewood’s rule to forecasting and optimization.\n\n\n\n\n\nApr 6, 2026\n\n\n\n\n\n\n\n\n\n\n\n\nWhy Should Airlines Care About Experimentation?\n\n\n\nRevenue Management\n\nExperimentation\n\n\n\nExperimentation is critical for airlines, but it’s also extremely challenging to do right. Here’s why, and the framework that helps us think about it.\n\n\n\n\n\nApr 4, 2026\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "posts/fundamentals-of-revenue-management/index.html",
@@ -74,7 +60,7 @@
     "href": "posts/fundamentals-of-revenue-management/index.html#references",
     "title": "Revenue Management 101: Introduction to Forecasting and Optimization",
     "section": "References",
-    "text": "References\n\nLittlewood, Kenneth. 1972. “Forecasting and Control of Passenger Bookings.” In AGIFORS Symposium Proceedings, 12:95–117."
+    "text": "References\n\nLittlewood, Kenneth. 1972. “Forecasting and Control of Passenger Bookings.” AGIFORS Symposium Proceedings 12: 95–117."
   },
   {
     "objectID": "posts/fundamentals-of-revenue-management/index.html#footnotes",
@@ -82,6 +68,27 @@
     "title": "Revenue Management 101: Introduction to Forecasting and Optimization",
     "section": "Footnotes",
     "text": "Footnotes\n\n\nShe got the job.↩︎\nConveniently, those are the two cities where the authors of this blog are from, and at the time of writing no airline operates this route.↩︎\nMore generally, the optimizer calculates outputs that can be used to determine fare quotes when a customer makes a booking request. Modern RM optimizers generate bid prices↩︎\nMontreal hosts the Canada Grand Prix Formula 1 race each year, which causes a significant demand spike. If you happen to visit Montreal at some other time, make sure to ride on the F1 track with a cityshare bike: it’s free!↩︎"
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "Welcome to the exciting world of revenue management and dynamic pricing.\nWhether you’re an executive with years of practical experience in the airline business, a data scientist looking at applying your skills in the field, or just dreaming of a career in revenue management, our blog is intended to be a place to deepen your understanding of the principles behind RM. Our domain knowledge comes from working for various airlines around the world, but the principles we talk about here extend to other industries that price perishable assets, such as hotels or vacation rentals, car rentals, or events etc."
+  },
+  {
+    "objectID": "about.html#what-to-expect",
+    "href": "about.html#what-to-expect",
+    "title": "About",
+    "section": "What to Expect",
+    "text": "What to Expect\nWe have diverse interests and hope to write for an equally diverse audience. Some posts will be geared toward revenue managers, while others will be more technical in nature.\nWe’ll use categories to help you easily filter and find content that matches your interests. We’re currently building a pipeline of ideas around:\n\nFundamentals of Revenue Management (a back-to-basics series)\nExperimentation in Airlines\nPaper Reviews and Discussions\n\nThe theme and structure of this blog were inspired by Vineeth’s Digital Garden."
+  },
+  {
+    "objectID": "about.html#the-authors",
+    "href": "about.html#the-authors",
+    "title": "About",
+    "section": "The Authors",
+    "text": "The Authors\n\n\n\n\n\nAlek Racicot\nHey, I’m Alek. I hold a Master’s in Economics from McGill University and work as a data scientist on dynamic pricing algorithms in the airline industry. I’ve worked with both full-service carriers and low-cost carriers. I’m particularly passionate about causal inference and experimentation.\n LinkedIn\n\n\n\n\n\n\n\nBazyli Szymanski\nHi, I’m Bazyli. I hold a PhD in Transportation Science from MIT, where I focused on revenue management. Since then, I’ve worked in revenue management with airlines across Europe and North America. I’m a huge airline nerd and love just about everything related to travel.\n LinkedIn"
   },
   {
     "objectID": "posts/experimentation101/index.html",
@@ -124,12 +131,5 @@
     "title": "Why Should Airlines Care About Experimentation?",
     "section": "Wrapping up",
     "text": "Wrapping up\nExperimentation in airlines is hard to do. We are often trying to measure a small signal on a noisy outcome, are limited by shared inventory to randomize at an aggregate level, and can very easily violate “silent” assumptions made by our statistical tests. The potential outcomes framework gives us the language to ask whether a test is actually valid before you launch it. Explicitely checking each assumption can help us avoid costly mistakes and make better decisions.\nIn an upcoming post, we will share a checklist that we use to design experiments in RM. It’s not exhaustive, but it covers the most common failure modes. We will also discuss some of the strategies we use to mitigate these risks and how we think about trade-offs when designing experiments."
-  },
-  {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "Theory and practice of dynamic pricing",
-    "section": "",
-    "text": "Revenue Management 101: Introduction to Forecasting and Optimization\n\n\n\nRevenue Management\n\nFundamentals\n\n\n\nIn this post, we introduce basic principles of airline RM systems.\n\n\n\n\n\nApr 6, 2026\n\n\n\n\n\n\n\n\n\n\n\n\nWhy Should Airlines Care About Experimentation?\n\n\n\nRevenue Management\n\nExperimentation\n\n\n\nExperimentation is critical for airlines, but it’s also extremely challenging to do right. Here’s why, and the framework that helps us think about it.\n\n\n\n\n\nApr 4, 2026\n\n\n\n\n\nNo matching items"
   }
 ]
