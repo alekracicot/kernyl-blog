@@ -5,10 +5,10 @@
       xmlns:dc="http://purl.org/dc/elements/1.1/" 
       version="2.0">
 <channel>
-<title>Kernyl — Airline Revenue Management &amp; Dynamic Pricing</title>
+<title>Kernyl</title>
 <link>https://www.kernyl.io/</link>
 <atom:link href="https://www.kernyl.io/index.xml" rel="self" type="application/rss+xml"/>
-<description>Kernyl explores revenue management, dynamic pricing, and experimentation in the airline industry. Causal inference, forecasting, optimization, and more.</description>
+<description>Deep dives into revenue management, dynamic pricing, and online experimentation for airlines, hotels, and perishable-asset industries.</description>
 <generator>quarto-1.10.18</generator>
 <lastBuildDate>Mon, 06 Apr 2026 00:00:00 GMT</lastBuildDate>
 <item>
