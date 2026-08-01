@@ -8,8 +8,8 @@ execute:
   freeze: true
 
 website:
-  title: "Kernyl — Airline Revenue Management & Dynamic Pricing"
-  description: "Deep dives into revenue management, dynamic pricing, and online experimentation for airlines, hotels, and perishable-asset industries."
+  title: "Kernyl"
+  description: "Exploring the theory and practice of dynamic pricing"
   site-url: https://www.kernyl.io
   favicon: favicon.svg
   google-analytics: "G-RCQGEPG5XP"
@@ -45,7 +45,7 @@ format:
             "name": "Kernyl",
             "alternateName": "Kernyl Blog",
             "url": "https://www.kernyl.io",
-            "description": "Deep dives into revenue management, dynamic pricing, and online experimentation for airlines, hotels, and perishable-asset industries.",
+            "description": "Exploring the theory and practice of dynamic pricing",
             "publisher": {
               "@type": "Organization",
               "name": "Kernyl",
