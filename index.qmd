@@ -1,6 +1,6 @@
 ---
 title: "Theory and practice of dynamic pricing"
-description: "Deep dives into revenue management, dynamic pricing, and online experimentation for airlines, hotels, and perishable-asset industries."
+description: "Deep dives into revenue management, dynamic pricing, and online experimentation for perishable-asset industries."
 listing:
   contents: posts
   feed: true
