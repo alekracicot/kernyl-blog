@@ -2,12 +2,29 @@
 title: "Why Should Airlines Care About Experimentation?"
 author: "Alek Racicot"
 date: "2026-04-04"
+date-modified: "2026-04-04"
 description: "Experimentation is critical for airlines, but it's also extremely challenging to do right. Here's why, and the framework that helps us think about it."
+slug: airline-experimentation-why-it-matters
 categories: [Revenue Management, Experimentation]
+keywords: [airline experimentation, causal inference, A/B testing, revenue management, fare ladder, shared inventory]
 image: thumbnail.jpg
 format:
   html:
     self-contained: false
+    include-after-body:
+      - text: |
+          <script type="application/ld+json">
+          {
+            "@context": "https://schema.org",
+            "@type": "BlogPosting",
+            "headline": "Why Should Airlines Care About Experimentation?",
+            "description": "Experimentation is critical for airlines, but it's also extremely challenging to do right. Here's why, and the framework that helps us think about it.",
+            "author": { "@type": "Person", "name": "Alek Racicot" },
+            "datePublished": "2026-04-04",
+            "image": "https://www.kernyl.io/posts/airline-experimentation-why-it-matters/thumbnail.jpg",
+            "url": "https://www.kernyl.io/posts/airline-experimentation-why-it-matters/"
+          }
+          </script>
 bibliography: references.bib
 ---
 

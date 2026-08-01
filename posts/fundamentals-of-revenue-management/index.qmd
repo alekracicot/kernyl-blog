@@ -2,12 +2,32 @@
 title: "Revenue Management 101: Introduction to Forecasting and Optimization"
 author: "Bazyli Szymański & Alek Racicot"
 date: "2026-04-06"
-description: "In this post, we introduce basic principles of airline RM systems."
+date-modified: "2026-04-06"
+description: "In this post, we introduce basic principles of airline RM systems, from Littlewood's rule to forecasting and optimization."
+slug: revenue-management-forecasting-optimization
 categories: [Revenue Management, Fundamentals]
+keywords: [revenue management, forecasting, optimization, Littlewood's rule, airline pricing, perishable inventory, EMSR]
 image: thumbnail.jpg
 format:
   html:
     self-contained: false
+    include-after-body:
+      - text: |
+          <script type="application/ld+json">
+          {
+            "@context": "https://schema.org",
+            "@type": "BlogPosting",
+            "headline": "Revenue Management 101: Introduction to Forecasting and Optimization",
+            "description": "In this post, we introduce basic principles of airline RM systems, from Littlewood's rule to forecasting and optimization.",
+            "author": [
+              { "@type": "Person", "name": "Bazyli Szymański" },
+              { "@type": "Person", "name": "Alek Racicot" }
+            ],
+            "datePublished": "2026-04-06",
+            "image": "https://www.kernyl.io/posts/revenue-management-forecasting-optimization/thumbnail.jpg",
+            "url": "https://www.kernyl.io/posts/revenue-management-forecasting-optimization/"
+          }
+          </script>
 bibliography: references.bib
 resources:
   - littlewood_sim.html

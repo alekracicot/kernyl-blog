@@ -1,5 +1,6 @@
 ---
-title: "Theory and practice of dynamic pricing"
+title: "Airline Revenue Management & Dynamic Pricing Blog"
+description: "Kernyl explores revenue management, dynamic pricing, and experimentation in the airline industry. Causal inference, forecasting, optimization, and more."
 listing:
   contents: posts
   feed: true

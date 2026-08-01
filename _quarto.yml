@@ -2,17 +2,21 @@ project:
   type: website
   resources:
     - CNAME
+    - robots.txt
 
 execute:
   freeze: true
 
 website:
-  title: "Kernyl"
-  description: "Exploring the theory and practice of dynamic pricing"
+  title: "Kernyl — Airline Revenue Management & Dynamic Pricing"
+  description: "Deep dives into revenue management, dynamic pricing, and online experimentation for airlines, hotels, and perishable-asset industries."
   site-url: https://www.kernyl.io
   favicon: favicon.svg
   google-analytics: "G-RCQGEPG5XP"
   search: true
+  open-graph: true
+  twitter-card:
+    card-style: summary_large_image
   navbar:
     left:
       - text: Posts
@@ -32,6 +36,23 @@ format:
     toc-depth: 3
     code-overflow: wrap
     highlight-style: github
+    include-after-body:
+      - text: |
+          <script type="application/ld+json">
+          {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "Kernyl",
+            "alternateName": "Kernyl Blog",
+            "url": "https://www.kernyl.io",
+            "description": "Deep dives into revenue management, dynamic pricing, and online experimentation for airlines, hotels, and perishable-asset industries.",
+            "publisher": {
+              "@type": "Organization",
+              "name": "Kernyl",
+              "url": "https://www.kernyl.io"
+            }
+          }
+          </script>
     grid:
       sidebar-width: 250px
       body-width: 850px
