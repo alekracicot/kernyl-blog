@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /janet/
 
 Sitemap: https://www.kernyl.io/sitemap.xml
