@@ -72,7 +72,7 @@ Over the past 50+ years of RM research and practice, both forecasting and optimi
 
 ## Forecasting
 
-Let's start with the forecast and explain what a simple demand forecast for promo and flex fares could look like. Let's assume that demand for upcoming flights on a given day of the week follows the same pattern as the past year of flights on that same day. <mark>The graph below shows historical bookings from the previous 52 Saturdays.</mark>
+Let's start with the forecast and explain what a simple demand forecast for promo and flex fares could look like. Let's assume that demand for upcoming flights on a given day of the week follows the same pattern as the past year of flights on that same day. 
 
 We're keeping things simple here: no seasonal patterns, no special events like Christmas or the Montreal F1 Grand Prix^[Montreal hosts the Canada Grand Prix Formula 1 race each year, which causes a significant demand spike. If you happen to visit Montreal at some other time, make sure to ride on the F1 track with a cityshare bike: it's free!]. The airline assumes that demand for each fare class is normally distributed, so all it needs to estimate are the mean and standard deviation (the the two parameters defining a normal distribution). An analyst looks at the data and quickly concludes: an average of 115 promo bookings (std. dev. = 20) and 30 flex bookings (std. dev. = 9). In other words, promo demand is normally distributed with parameters (115, 20) and flex demand (30,9). Makes sense, right?
 
