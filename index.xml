@@ -20,22 +20,22 @@
 
 
 
-<p>What is the optimal load factor for an airline across the entire year? A friend recently got asked that exact question during a job interview for an airline revenue management department. Personally, I would have probably given a vague answer on how “it depends” on many factors (and probably would have flunked the interview by being so vague)<sup>1</sup>. But the interview question made me think about the common preconception around how airlines should always target to sell 100% of their seats. In this post, I’d like to introduce you to foundations of revenue management (RM), and show how from a revenue maximization perspective, making sure we sell all seats every time is not a good idea.</p>
-<p>To see how RM works, let’s walk through a simple example. Consider an airline operating a single daily flight between Montreal (YUL) and Warsaw (WAW)<sup>2</sup> that sells two types of fares: a bare-bones non-refundable <strong>promo</strong> fare at $400, and a fully refundable <strong>flex</strong> fare at $1050. To prevent business/corporate customers from buying the cheaper promo fare, the airline makes it available only until 30 days before departure (an advance purchase restriction). The assumption (made by the pricing department) is that business customers have a higher willingness to pay and tend to book closer to departure. Both fares sell the same economy class seats, making this a form of third-degree price discrimination.</p>
-<p>The airline has already set its products (two types of fares) and prices. But it has one more lever to pull: <strong>managing inventory</strong>. When should it stop selling the promo fare? How many seats should it protect for late-arriving business passengers willing to pay $1050?</p>
+<p>What is the optimal load factor for an airline across the entire year? A friend recently got asked that exact question during a job interview for an airline revenue management department. Personally, I would have probably given a vague answer on how “it depends” on many factors<sup>1</sup>. But the question made me think about the common preconception around how airlines should always target to sell 100% of their seats. From a revenue maximization perspective, making sure we sell all seats every time is not generally a good idea, and in this post I’d like to introduce you to the basics of revenue management (RM) to make the point.</p>
+<p>To see how RM works, let’s walk through a simple example. Consider an airline operating a single daily flight between Montreal (YUL) and Warsaw (WAW)<sup>2</sup> that sells two types of fares: a bare-bones non-refundable <strong>promo</strong> fare at $400, and a fully refundable <strong>flex</strong> fare at $1050. To prevent business/corporate customers from buying the cheaper promo fare, the airline makes it available only until 30 days before departure (an advance purchase restriction on the fare). The assumption (made by the pricing department, who typically set fare restrictions) is that business customers have a higher willingness to pay and tend to book closer to departure. Both fares include the same economy class seats on the same flights, but are targeting different customer segments: a form of third-degree price discrimination.</p>
+<p>The airline has already set its products (two types of fares) and their prices. But the RM department has one important lever to pull: <strong>managing inventory</strong> (in this case, seats on the YUL-WAW flights). When should we stop selling the promo fare? In other words, how many seats to protect for late-arriving business passengers willing to pay $1050?</p>
 <section id="why-managing-inventory-matters" class="level2">
 <h2 class="anchored" data-anchor-id="why-managing-inventory-matters">Why managing inventory matters</h2>
-<p>An airline’s inventory is finite and perishable. The aircraft operating the Montreal to Warsaw flight has just 170 economy class seats — the airline can’t add more (<strong>finite inventory</strong>, <strong>inelastic supply</strong>). And once the flight departs, every unsold seat is worthless (<strong>perishable capacity</strong>). This creates a tension: sell too many $400 promo fares early and you leave no room for $1050 flex passengers (high load factor, low yield). Protect too many seats for flex and you risk departing with empty seats that could have been sold at $400 (low load factor, high yield). The job of revenue management is to strike the right balance with the objective of maximizing total revenue.</p>
-<p>This setup isn’t unique to airlines: any business with limited, perishable capacity — hotels, concert venues, or car rentals — faces the same trade-off. By contrast, many online retailers can replenish stock and don’t have the same perishable-capacity constraint; even though firms like Amazon use advanced pricing techniques, the perishable-capacity logic at the heart of airline RM plays a smaller role in their business.</p>
+<p>An airline’s inventory is finite and perishable. The aircraft operating the Montreal to Warsaw flight has just 170 economy class seats — the airline can’t add more (<strong>finite inventory</strong>, <strong>inelastic supply</strong>). And once the flight departs, every unsold seat is worthless (<strong>perishable capacity</strong>). This creates a tension: sell too many $400 promo fares early and you leave no room for $1050 flex passengers (high <strong>load factor</strong>, low <strong>yield</strong><sup>3</sup>). Protect too many seats for flex and you risk departing with empty seats that could have been sold at $400 (low load factor, high yield). The job of revenue management is to strike the right balance with the objective of maximizing total revenue.</p>
+<p>This setup isn’t unique to airlines: any business with limited, perishable capacity — hotels, concert venues, or car rentals — faces the same trade-off. By contrast, many online retailers can replenish stock (more elastic supply) and don’t have the same perishable-capacity constraint (razors don’t really have an expiry date); even though firms like Amazon use advanced pricing techniques, the perishable-capacity logic at the heart of airline RM plays a smaller role in their business.</p>
 </section>
 <section id="airline-rm-systems-forecasting-and-optimization" class="level2">
 <h2 class="anchored" data-anchor-id="airline-rm-systems-forecasting-and-optimization">Airline RM systems: forecasting and optimization</h2>
 <p>Most revenue management systems used by airlines today break the problem into two steps: forecasting and optimization.</p>
 <ul>
-<li><p>The <strong>forecaster</strong> uses historical data (such as past bookings) to estimate how much demand there will be for each product — e.g., promo and flex fares between Montreal and Warsaw — on each upcoming flight.</p></li>
-<li><p>The <strong>optimizer</strong> takes that demand forecast and calculates booking limits which are then used to quote a fare to a customer in response to a booking request<sup>3</sup>. The optimizer intends to maximize revenue, under the assumption that the forecast is correct.</p></li>
+<li><p>The <strong>forecaster</strong> uses historical data (such as past bookings) to estimate how much demand to expect for each product — e.g., promo and flex fares between Montreal and Warsaw — on each upcoming flight.</p></li>
+<li><p>The <strong>optimizer</strong> takes that demand forecast and calculates how many seats should be made available for each fare, which are then used to quote a fare to a customer in response to a booking request<sup>4</sup>. The optimizer intends to maximize revenue, under the assumption that the forecast is correct.</p></li>
 </ul>
-<p>This simple framework is depicted in the figure below.</p>
+<p>A high-level overview of a typical RM system is depicted below.</p>
 <div class="cell" data-layout-align="default">
 <div class="cell-output-display">
 <div id="fig-rm-loop" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -44,7 +44,7 @@
 <div>
 <pre class="mermaid mermaid-js" data-label="fig-rm-loop">flowchart LR
     F[Demand&lt;br/&gt;Forecaster] --&gt;|demand forecast| O[Optimizer]
-    O --&gt;|booking limits&lt;br/&gt;/ prices| Q[Pricing Engine]
+    O --&gt;|fare availability&lt;br/&gt;/ prices| Q[Pricing Engine]
     Q --&gt;|fare quotes| B[Passenger&lt;br/&gt;Bookings]
     B --&gt;|historical&lt;br/&gt;bookings| F
 </pre>
@@ -67,18 +67,17 @@ Figure&nbsp;1: The revenue management feedback loop.
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Over the past 50+ years of RM research and practice, both forecasting and optimization techniques have seen major advances — each with a significant impact on airline revenues. More recently, researchers have started moving beyond the forecast-then-optimize framework entirely, exploring RM systems that learn pricing policies directly from data using reinforcement learning or specialized neural network architectures. We’ll cover those approaches in future posts — for now, let’s focus on the foundations, which are still very much relevant today.</p>
-<p>Real-world airlines also don’t manage a single flight in isolation. A network carrier like Delta, Air Canada, or LOT Polish needs to forecast and optimize across connecting itineraries — a much harder problem that we’ll tackle separately.</p>
+<p>Over the past 50+ years of RM research and practice, both forecasting and optimization techniques have seen major advances — each with a significant impact on airline revenues. More recently, researchers have started moving beyond the forecast-then-optimize framework, exploring RM systems that learn pricing policies directly from data using reinforcement learning or specialized neural network architectures. We’ll cover those approaches in future posts — for now, let’s focus on the classic framework, which continues to be the foundation for virtually all major airlines.</p>
 </div>
 </div>
 </section>
 <section id="forecasting" class="level2">
 <h2 class="anchored" data-anchor-id="forecasting">Forecasting</h2>
-<p>Let’s get our hands dirty by building a simple demand forecast for our promo and flex fares. We’ll assume that demand for upcoming flights on a given day of the week follows the same pattern as the past year of flights on that same day. The graph below shows historical bookings from the previous 52 Saturdays.</p>
-<p>We’re keeping things simple here: no seasonal patterns, no special events like Christmas or the Montreal F1 Grand Prix<sup>4</sup>. The airline assumes that demand for each fare class is normally distributed, so all it needs to estimate are the mean and standard deviation (these are the two parameters defining a normal distribution). An analyst looks at the data and quickly concludes: an average of 115 promo bookings (std. dev. = 20) and 30 flex bookings (std. dev. = 9). In other words, promo demand <img src="https://latex.codecogs.com/png.latex?%5Csim%20N(115,%2020)"> and flex demand <img src="https://latex.codecogs.com/png.latex?%5Csim%20N(30,%209)">. Makes sense, right?</p>
-<p>Well, almost. What the airline is trying to forecast is <strong>demand</strong>, not <strong>bookings</strong>. The difference is subtle but important: whenever a product isn’t available for sale (say, the flight is sold out), the airline doesn’t see the customers who would have bought it. Look carefully at the graph — we never recorded more than 170 total bookings, the physical capacity of the economy cabin (we’re not overbooking just yet). In some cases, we recorded zero flex bookings — not because nobody wanted the flex fare, but because all 170 seats had already sold out in the promo fare.</p>
+<p>Let’s start with the forecast and explain what a simple demand forecast for promo and flex fares could look like. Let’s assume that demand for upcoming flights on a given day of the week follows the same pattern as the past year of flights on that same day. <mark>The graph below shows historical bookings from the previous 52 Saturdays.</mark></p>
+<p>We’re keeping things simple here: no seasonal patterns, no special events like Christmas or the Montreal F1 Grand Prix<sup>5</sup>. The airline assumes that demand for each fare class is normally distributed, so all it needs to estimate are the mean and standard deviation (the the two parameters defining a normal distribution). An analyst looks at the data and quickly concludes: an average of 115 promo bookings (std. dev. = 20) and 30 flex bookings (std. dev. = 9). In other words, promo demand is normally distributed with parameters (115, 20) and flex demand (30,9). Makes sense, right?</p>
+<p>Well, almost. What the airline is trying to forecast is <strong>demand</strong>, not <strong>bookings</strong>. The difference is subtle but important: whenever a product isn’t available for sale (say, the flight is sold out), the airline doesn’t see the customers who would have bought it. Look carefully at the graph — we never recorded more than 170 total bookings, the physical capacity of the economy cabin<sup>6</sup>. In some cases, we recorded zero flex bookings — not because nobody wanted the flex fare, but because all 170 seats had already sold out in the promo fare.</p>
 <p>So how do we deal with this incomplete (censored) data? Airlines call the fix <strong>unconstraining</strong> (sometimes detruncating): estimating how many additional customers would have purchased during the period when a product was sold out. One straightforward approach is to extrapolate from flights that weren’t sold out. For example, say 32 flex tickets were sold before the fare sold out 3 days before departure. If historically 15% of flex customers book in the final 3 days, we’d estimate about 37.6 total flex customers (32 / 0.85), adding back roughly 5.6 bookings we would have expected had seats been available.</p>
-<p>There are more sophisticated unconstraining methods out there — projection detruncation and EM (expectation maximization) are common <span class="citation" data-cites="weatherford2002">(see <strong>weatherford2002?</strong> for a comparison)</span> — but the key idea is the same. After applying unconstraining, the analyst estimates true demand at roughly 122 promo customers on average (with typical day-to-day variation around 25) and about 30 flex customers on average (variation around 7). Now — how do we use this to calculate booking limits?</p>
+<p>There are more sophisticated unconstraining methods out there — projection detruncation and EM (expectation maximization) are common <span class="citation" data-cites="weatherford2002">(see Weatherford and Pölt 2002 for a comparison)</span> — but the key idea is the same. After applying unconstraining, the analyst estimates true demand at roughly 122 promo customers on average (with typical day-to-day variation around 25) and about 30 flex customers on average (variation around 7). Now — how do we use this to calculate booking limits?</p>
 </section>
 <section id="optimization" class="level2">
 <h2 class="anchored" data-anchor-id="optimization">Optimization</h2>
@@ -117,18 +116,25 @@ Figure&nbsp;1: The revenue management feedback loop.
 <p>In this post, we wanted to introduce you to the core RM concepts: the forecasting-optimization framework, demand unconstraining, and the idea that remaining capacity has a calculable value that underpins most RM systems used in practice. We also tried to introduce some RM terminology. That said, if you work in RM, or even if you just buy airline tickets from time to time, you’ll notice our example was quite simplified:</p>
 <ul>
 <li><p><strong>Demand segments aren’t truly independent.</strong> We assumed promo and flex customers are completely separate groups. In practice, some leisure travelers will buy the flex fare when promo sells out, and some business travelers will buy down to the promo fare if their travel policy allows it.</p></li>
+<li><p><strong>Many carriers manage a network, not a single flight</strong>. A network carrier like Delta, Air Canada, or LOT Polish needs to forecast and optimize across connecting itineraries: some people sitting on a plane from Montreal to Warsaw may actually be flying from Ottawa to Kraków, and be paying very different fares from those flying non-stop.</p></li>
 <li><p><strong>Prices aren’t fixed.</strong> We only managed inventory — deciding how many seats to allocate to each fare — and took the fares themselves as given. This separation between pricing and inventory management is how many legacy airlines still operate. But the more interesting question is: what should the optimal price be at any given moment? Maybe the flex fare should cost $900, not $1050. Or perhaps both fares should adjust continuously as demand materializes?</p></li>
 <li><p><strong>Forecasting is hard.</strong> We made it look easy. In practice, extreme variability (events, seasonality, pure randomness), complex customer choice behavior, data sparsity (especially for network carriers), and demand endogeneity make forecasting one of the most challenging parts of the RM problem.</p></li>
 <li><p><strong>We completely ignored competition.</strong> Our model assumed demand for our flight depends only on our own fares and seat availability. In reality, passengers choose between airlines, so when a competitor cuts prices or adds capacity, some of our demand spills to them.</p></li>
 </ul>
 <p>We’ll look into these assumptions in future posts. In the meantime, let us know what you think and what RM topics you’d like to see covered next!</p>
-<p>If you are looking for a comprehensive treatment of different aspects of running the airline business including revenue management, see <span class="citation" data-cites="belobaba2015">(<strong>belobaba2015?</strong>)</span>.</p>
+<p>If you are looking for a comprehensive treatment of different aspects of running the airline business including revenue management, see <span class="citation" data-cites="belobaba2016">Belobaba et al. (2016)</span>.</p>
 </section>
 <div id="refs" class="references csl-bib-body hanging-indent">
 <section id="references" class="level2">
 <h2 class="anchored" data-anchor-id="references">References</h2>
+<div id="ref-belobaba2016" class="csl-entry">
+Belobaba, Peter, Amedeo Odoni, and Cynthia Barnhart, eds. 2016. <em>The Global Airline Industry</em>. 2nd ed. Wiley.
+</div>
 <div id="ref-littlewood1972" class="csl-entry">
 Littlewood, Kenneth. 1972. <span>“Forecasting and Control of Passenger Bookings.”</span> <em>AGIFORS Symposium Proceedings</em> 12: 95–117.
+</div>
+<div id="ref-weatherford2002" class="csl-entry">
+Weatherford, Lawrence R., and Samuel Pölt. 2002. <span>“Better Unconstraining of Airline Demand Data in Revenue Management Systems for Improved Forecast Accuracy and Greater Revenues.”</span> <em>Journal of Revenue and Pricing Management</em> 1 (3): 234–54.
 </div>
 </section>
 </div>
@@ -139,10 +145,12 @@ Littlewood, Kenneth. 1972. <span>“Forecasting and Control of Passenger Booking
 <div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
 
 <ol>
-<li id="fn1"><p>She got the job.↩︎</p></li>
+<li id="fn1"><p>And I probably would have flunked the interview by being so vague. She got the job!↩︎</p></li>
 <li id="fn2"><p>Conveniently, those are the two cities where the authors of this blog are from, and at the time of writing no airline operates this route.↩︎</p></li>
-<li id="fn3"><p>More generally, the optimizer calculates outputs that can be used to determine fare quotes when a customer makes a booking request. Modern RM optimizers generate bid prices↩︎</p></li>
-<li id="fn4"><p>Montreal hosts the Canada Grand Prix Formula 1 race each year, which causes a significant demand spike. If you happen to visit Montreal at some other time, make sure to ride on the F1 track with a cityshare bike: it’s free!↩︎</p></li>
+<li id="fn3"><p>On a single flight, load factor is defined as the number of paying customers that have flown divided by the number of available seats; yield is the average fare per mile (or km) flown. YUL-WAW is 4,030 miles, so if only promo fares are sold, we can expect a yield of $0.099. For a comprehensive introduction to commercial airline terminology and much more, see the great <span class="citation" data-cites="belobaba2016">(Belobaba et al. 2016)</span>↩︎</p></li>
+<li id="fn4"><p>More generally, the optimizer calculates outputs that can be used to determine fare quotes when a customer makes a booking request, although they don’t necessarily have to take a form of fare availability or booking limits.↩︎</p></li>
+<li id="fn5"><p>Montreal hosts the Canada Grand Prix Formula 1 race each year, which causes a significant demand spike. If you happen to visit Montreal at some other time, make sure to ride on the F1 track with a cityshare bike: it’s free!↩︎</p></li>
+<li id="fn6"><p>For now, let our minds not wander about overbooking.↩︎</p></li>
 </ol>
 </section></div> ]]></description>
   <category>Revenue Management</category>
